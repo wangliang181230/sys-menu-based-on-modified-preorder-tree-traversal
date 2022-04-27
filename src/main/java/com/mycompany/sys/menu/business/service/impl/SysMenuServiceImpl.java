@@ -46,6 +46,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 			entity.setRootId(entity.getKid()); // 复制kid到rootId
 			entity.setValueLeft(1);
 			entity.setValueRight(2);
+			entity.setLevel(1);
 			if (!super.save(entity)) {
 				throw new RuntimeException("新增菜单失败");
 			}
@@ -108,11 +109,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 		}
 
 		// 删除菜单前，先把所有子菜单全部获取出来
-		SysMenuQueryParam param = new SysMenuQueryParam();
-		param.setParentLeft(entity.getValueLeft());
-		param.setParentRight(entity.getValueRight());
-
-		List<SysMenuTreeVO> childs = baseMapper.findVOList(param);
+		List<SysMenuTreeVO> childs = this.findChilds(entity);
 		if (entity != targetParent) { // 不移动到根节点时，校验移动目标是否为子节点
 			if (childs.stream().anyMatch(menu -> Objects.equals(menu.getKid(), targetParentKid))) {
 				throw new RuntimeException("无法移动到自己的子节点");
@@ -145,5 +142,14 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 			this.insertMenu(menu);
 			this.saveChilds(menu.getChilds()); // 递归
 		}
+	}
+
+	private List<SysMenuTreeVO> findChilds(SysMenuDO entity) {
+		SysMenuQueryParam param = new SysMenuQueryParam();
+		param.setRootId(entity.getRootId());
+		param.setParentLeft(entity.getValueLeft());
+		param.setParentRight(entity.getValueRight());
+
+		return baseMapper.findVOList(param);
 	}
 }

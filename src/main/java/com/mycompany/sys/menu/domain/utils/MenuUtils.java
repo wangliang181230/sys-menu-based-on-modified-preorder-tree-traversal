@@ -38,7 +38,7 @@ public abstract class MenuUtils {
 	private static List<SysMenuTreeVO> getChildList(Long id, List<SysMenuTreeVO> list) {
 		List<SysMenuTreeVO> childList = new ArrayList<>();
 		for (SysMenuTreeVO nav : list) {
-			if (Objects.equals(nav.getPid(), id)) {
+			if (Objects.equals(nav.getPid(), id) && !Objects.equals(nav.getKid(), id)) {
 				childList.add(nav);
 				nav.setRoot(false);
 			}
