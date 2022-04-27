@@ -4,9 +4,10 @@
 
 	<select id="findVOList" resultType="com.mycompany.sys.menu.domain.vo.SysMenuTreeVO"
 			parameterType="com.mycompany.sys.menu.domain.param.SysMenuQueryParam">
-		SELECT `kid` , `pid`, `name`, `value_left`, `value_right`, `level`, `grandfather_id`
+		SELECT `kid` , `pid`, `name`, `value_left`, `value_right`, `level`, `root_id`
 		FROM sys_menu t
 		<where>
+			<if test="rootId != null ">AND t.root_id = #{rootId}</if>
 			<if test="pid != null ">AND t.pid = #{pid}</if>
 			<if test="parentLeft != null ">AND t.value_left > #{parentLeft}</if>
 			<if test="parentRight != null ">AND t.value_right &lt;= #{parentRight}</if>
@@ -15,9 +16,10 @@
 
 	<select id="findList" resultType="com.mycompany.sys.menu.domain.vo.SysMenuTreeVO"
 			parameterType="com.mycompany.sys.menu.domain.entity.SysMenuDO">
-		SELECT `kid` , `pid`, `name`, `value_left`, `value_right`, `level`, `grandfather_id`
+		SELECT `kid` , `pid`, `name`, `value_left`, `value_right`, `level`, `root_id`
 		FROM sys_menu t
 		<where>
+			<if test="rootId != null ">AND t.root_id = #{rootId}</if>
 			<if test="pid != null ">AND t.pid = #{pid}</if>
 			<if test="parentLeft != null ">AND t.value_left > #{parentLeft}</if>
 			<if test="parentRight != null ">AND t.value_right &lt;= #{parentRight}</if>

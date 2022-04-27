@@ -12,7 +12,7 @@ public class SysMenuDO {
 	@TableId(type = IdType.ASSIGN_ID)
 	private Long kid; // 主键
 
-	private Long pid; //  父级id
+	private Long pid; //  父级ID
 
 	private String name; //  菜单名称
 
@@ -22,11 +22,11 @@ public class SysMenuDO {
 
 	private Integer level; // 层级
 
-	private Long grandfatherId; //  爷爷级id
+	private Long rootId; //  根节点ID
 
 
 	public boolean isRoot() {
-		return pid == null || Objects.equals(pid, 0L);
+		return pid == null || Objects.equals(pid, 0L) || Objects.equals(pid, kid);
 	}
 
 
@@ -80,12 +80,12 @@ public class SysMenuDO {
 		this.level = level;
 	}
 
-	public Long getGrandfatherId() {
-		return grandfatherId;
+	public Long getRootId() {
+		return rootId;
 	}
 
-	public void setGrandfatherId(Long grandfatherId) {
-		this.grandfatherId = grandfatherId;
+	public void setRootId(Long rootId) {
+		this.rootId = rootId;
 	}
 
 	//endregion

@@ -3,6 +3,7 @@ package com.mycompany.sys.menu.business.service.impl;
 import java.util.List;
 import java.util.Objects;
 
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
 import com.mycompany.sys.menu.business.mapper.SysMenuMapper;
@@ -19,6 +20,11 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 		implements ISysMenuService {
 
 	@Override
+	public List<SysMenuTreeVO> findRootList(SysMenuQueryParam param) {
+		return null;
+	}
+
+	@Override
 	public List<SysMenuTreeVO> findList(SysMenuQueryParam param) {
 		return baseMapper.findVOList(param);
 	}
@@ -32,17 +38,12 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 	@Override
 	@Transactional
 	public Long insertMenu(SysMenuDO entity) {
-		//entity.setKid(null);
-
 		if (entity.isRoot()) { // 直接新增根节点
-			// 判断是否已经存在根节点
-			int count = baseMapper.countByPid(0L);
-			if (count > 0) {
-				throw new RuntimeException("根节点已经存在，不能再添加");
+			if (entity.getKid() == null) {
+				entity.setKid(IdWorker.getId()); // ID先生成好，因为要复制给pid和rootId
 			}
-
-			entity.setPid(0L);
-			entity.setGrandfatherId(0L);
+			entity.setPid(entity.getKid()); // 复制kid到pid
+			entity.setRootId(entity.getKid()); // 复制kid到rootId
 			entity.setValueLeft(1);
 			entity.setValueRight(2);
 			if (!super.save(entity)) {
@@ -54,8 +55,10 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 				throw new RuntimeException("父节点不存在，id: " + entity.getPid());
 			}
 
-			baseMapper.updateLeftByParentRight(parentEntity.getValueRight());
-			baseMapper.updateRightByParentRight(parentEntity.getValueRight());
+			baseMapper.updateLeftByParentRight(parentEntity.getValueRight(), parentEntity.getRootId());
+			baseMapper.updateRightByParentRight(parentEntity.getValueRight(), parentEntity.getRootId());
+
+			entity.setRootId(parentEntity.getRootId());
 			if (!SqlHelper.retBool(baseMapper.insertChild(entity, parentEntity))) {
 				throw new RuntimeException("新增叶节点失败");
 			}
@@ -76,9 +79,9 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 	}
 
 	private void deleteMenuAndChilds(SysMenuDO entity) {
-		baseMapper.deleteByParentLeftAndRight(entity.getValueLeft(), entity.getValueRight());
-		baseMapper.updateGreaterThanParentLeft(entity.getValueLeft(), entity.getValueRight());
-		baseMapper.updateGreaterThanParentRight(entity.getValueLeft(), entity.getValueRight());
+		baseMapper.deleteByParentLeftAndRight(entity.getValueLeft(), entity.getValueRight(), entity.getRootId());
+		baseMapper.updateGreaterThanParentLeft(entity.getValueLeft(), entity.getValueRight(), entity.getRootId());
+		baseMapper.updateGreaterThanParentRight(entity.getValueLeft(), entity.getValueRight(), entity.getRootId());
 	}
 
 	@Override
@@ -92,21 +95,16 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 		if (Objects.equals(entity.getPid(), targetParentKid)) {
 			return; // 父ID已经是目标父ID了
 		}
-		if (entity.isRoot()) {
-			throw new RuntimeException("根节点无法移动");
-		}
 
-		if (targetParentKid == null) {
-			throw new RuntimeException("目标父菜单ID不能为空");
-		}
-		if (targetParentKid <= 0) {
-			throw new RuntimeException("目标父菜单ID必须大于0");
-		}
-
-		// 获取目标父菜单数据
-		SysMenuDO targetParent = super.getById(targetParentKid);
-		if (targetParent == null) {
-			throw new RuntimeException("目标父菜单数据不存在，id：" + targetParentKid);
+		SysMenuDO targetParent;
+		if (!Objects.equals(kid, targetParentKid)) {
+			// 获取目标父菜单数据
+			targetParent = super.getById(targetParentKid);
+			if (targetParent == null) {
+				throw new RuntimeException("目标父菜单数据不存在，id：" + targetParentKid);
+			}
+		} else {
+			targetParent = entity;
 		}
 
 		// 删除菜单前，先把所有子菜单全部获取出来
@@ -115,19 +113,27 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 		param.setParentRight(entity.getValueRight());
 
 		List<SysMenuTreeVO> childs = baseMapper.findVOList(param);
-		if (childs.stream().anyMatch(menu -> Objects.equals(menu.getKid(), targetParentKid))) {
-			throw new RuntimeException("无法移动到自己的子节点");
+		if (entity != targetParent) { // 不移动到根节点时，校验移动目标是否为子节点
+			if (childs.stream().anyMatch(menu -> Objects.equals(menu.getKid(), targetParentKid))) {
+				throw new RuntimeException("无法移动到自己的子节点");
+			}
 		}
-		childs = MenuUtils.listToTree(childs);
 
 		// 先删除当前菜单及其所有子菜单
 		this.deleteMenuAndChilds(entity);
 
-		// 设置新的父菜单ID，再新增菜单
+		// 设置新的父菜单ID和根节点，再新增菜单
 		entity.setPid(targetParentKid);
+		if (!Objects.equals(entity.getRootId(), targetParent.getRootId())) {
+			entity.setRootId(targetParent.getRootId());
+			for (SysMenuTreeVO child : childs) {
+				child.setRootId(entity.getRootId());
+			}
+		}
 		this.insertMenu(entity);
 
 		// 重新新增所有子菜单
+		childs = MenuUtils.listToTree(childs); // 转为树型
 		this.saveChilds(childs);
 	}
 

@@ -5,12 +5,22 @@ package com.mycompany.sys.menu.domain.param;
  */
 public class SysMenuQueryParam {
 
+	private Long rootId;
+
 	private Long pid;
 
 	private Integer parentLeft;
 
 	private Integer parentRight;
 
+
+	public Long getRootId() {
+		return rootId;
+	}
+
+	public void setRootId(Long rootId) {
+		this.rootId = rootId;
+	}
 
 	public Long getPid() {
 		return pid;
