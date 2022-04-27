@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.mycompany.sys.menu.business.mapper.SysMenuMapper">
+
+	<select id="findVOList" resultType="com.mycompany.sys.menu.domain.vo.SysMenuTreeVO"
+			parameterType="com.mycompany.sys.menu.domain.param.SysMenuQueryParam">
+		SELECT `kid` , `pid`, `name`, `value_left`, `value_right`, `level`, `grandfather_id`
+		FROM sys_menu t
+		<where>
+			<if test="pid != null ">AND t.pid = #{pid}</if>
+			<if test="parentLeft != null ">AND t.value_left > #{parentLeft}</if>
+			<if test="parentRight != null ">AND t.value_right &lt;= #{parentRight}</if>
+		</where>
+	</select>
+
+	<select id="findList" resultType="com.mycompany.sys.menu.domain.vo.SysMenuTreeVO"
+			parameterType="com.mycompany.sys.menu.domain.entity.SysMenuDO">
+		SELECT `kid` , `pid`, `name`, `value_left`, `value_right`, `level`, `grandfather_id`
+		FROM sys_menu t
+		<where>
+			<if test="pid != null ">AND t.pid = #{pid}</if>
+			<if test="parentLeft != null ">AND t.value_left > #{parentLeft}</if>
+			<if test="parentRight != null ">AND t.value_right &lt;= #{parentRight}</if>
+		</where>
+	</select>
+</mapper>
