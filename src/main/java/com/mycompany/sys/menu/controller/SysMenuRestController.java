@@ -25,8 +25,8 @@ public class SysMenuRestController {
 
 
 	@GetMapping("/root-list")
-	public List<SysMenuTreeVO> findRootList(@ModelAttribute SysMenuQueryParam param) {
-		return sysMenuService.findRootList(param);
+	public List<SysMenuTreeVO> findRootList() {
+		return sysMenuService.findRootList();
 	}
 
 	@GetMapping("/list")

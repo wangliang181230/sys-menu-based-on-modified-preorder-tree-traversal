@@ -14,7 +14,7 @@ import org.apache.ibatis.annotations.Update;
 @Mapper
 public interface SysMenuMapper extends BaseMapper<SysMenuDO> {
 
-	@Select("SELECT * FROM sys_menu WHERE pid = kid OR pid = 0 OR pid is null")
+	@Select("SELECT * FROM sys_menu WHERE pid is null OR pid = 0 OR pid = kid")
 	List<SysMenuTreeVO> findRootList();
 
 	List<SysMenuTreeVO> findVOList(SysMenuQueryParam param);

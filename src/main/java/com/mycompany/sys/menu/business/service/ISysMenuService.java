@@ -11,12 +11,11 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 public interface ISysMenuService extends IService<SysMenuDO> {
 
 	/**
-	 * 查询根列表数据
+	 * 查询根节点列表数据
 	 *
-	 * @param param 查询参数
-	 * @return 返回列表数据
+	 * @return 返回根节点列表数据
 	 */
-	List<SysMenuTreeVO> findRootList(@ModelAttribute SysMenuQueryParam param);
+	List<SysMenuTreeVO> findRootList();
 
 	/**
 	 * 查询列表数据

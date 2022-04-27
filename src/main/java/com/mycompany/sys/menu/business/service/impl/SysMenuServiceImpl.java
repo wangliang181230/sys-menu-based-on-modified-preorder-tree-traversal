@@ -20,8 +20,8 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 		implements ISysMenuService {
 
 	@Override
-	public List<SysMenuTreeVO> findRootList(SysMenuQueryParam param) {
-		return null;
+	public List<SysMenuTreeVO> findRootList() {
+		return baseMapper.findRootList();
 	}
 
 	@Override
