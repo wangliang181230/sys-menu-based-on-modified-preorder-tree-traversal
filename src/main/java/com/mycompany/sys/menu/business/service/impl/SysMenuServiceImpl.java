@@ -93,7 +93,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 			throw new RuntimeException("菜单数据不存在，id：" + kid);
 		}
 		if (Objects.equals(entity.getPid(), targetParentKid)) {
-			return; // 父ID已经是目标父ID了
+			return; // 父ID已经是目标父ID了，支持幂等
 		}
 
 		SysMenuDO targetParent;
