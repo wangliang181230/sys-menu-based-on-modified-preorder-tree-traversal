@@ -96,7 +96,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 			return; // 父ID已经是目标父ID了，支持幂等
 		}
 
-		if (!Objects.equals(id, targetPid)) { // 转移到目标父节点下
+		if (targetPid != null && !Objects.equals(id, targetPid)) { // 转移到目标父节点下
 			// 获取目标父节点数据
 			SysMenuDO targetParent = baseMapper.selectByIdForUpdate(targetPid);
 			if (targetParent == null) {

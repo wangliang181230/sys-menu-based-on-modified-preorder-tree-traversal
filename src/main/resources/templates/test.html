@@ -19,14 +19,14 @@
 <body>
 	<form id="insertPanel">
 		新增：
-		<label for="name">name：</label><input id="name" name="name" type="text"/>
-		<label for="pid">pid：</label><input id="pid" name="pid" type="text"/>
+		<label for="name">节点名称：</label><input id="name" name="name" type="text"/>
+		<label for="pid">父节点ID：</label><input id="pid" name="pid" type="text"/>
 		<input value="提交" type="button" onclick="insert()"/>
 	</form>
 	<form id="movePanel">
 		移动：
-		<label for="id">id：</label><input id="id" name="id" type="text"/>
-		<label for="targetPid">targetPid：</label><input id="targetPid" name="targetPid" type="text"/>
+		<label for="id">节点ID：</label><input id="id" name="id" type="text"/>
+		<label for="targetPid">移动到的节点ID：</label><input id="targetPid" name="targetPid" type="text"/>
 		<input value="提交" type="button" onclick="move()"/>
 	</form>
 
@@ -92,7 +92,7 @@
 			let pid = $("#pid").val();
 
 			if (!name) {
-				alert("name必填");
+				alert("节点名称必填");
 				$("#name").focus();
 				return;
 			}
@@ -120,7 +120,7 @@
 			let targetPid = $("#targetPid").val();
 
 			if (!id) {
-				alert("id必填");
+				alert("节点ID必填");
 				$("#id").focus();
 				return;
 			}
