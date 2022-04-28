@@ -10,34 +10,87 @@ import com.baomidou.mybatisplus.annotation.TableName;
 public class SysMenuDO {
 
 	@TableId(type = IdType.ASSIGN_ID)
-	private Long kid; // 主键
+	private Long id; // 主键
 
 	private Long pid; //  父级ID
 
-	private String name; //  菜单名称
+	private String name; //  节点名称
 
-	private Integer valueLeft; //  左值
+	private Integer l; //  左值
 
-	private Integer valueRight; //  右值
+	private Integer r; //  右值
 
 	private Integer level; // 层级
 
 	private Long rootId; //  根节点ID
 
 
+	/**
+	 * 是否根节点
+	 *
+	 * @return true=是 | false=否
+	 */
 	public boolean isRoot() {
-		return pid == null || Objects.equals(pid, 0L) || Objects.equals(pid, kid);
+		return pid == null || Objects.equals(pid, 0L) || Objects.equals(pid, id);
+	}
+
+	/**
+	 * 是否叶子节点
+	 *
+	 * @return true=是 | false=否
+	 */
+	public boolean isLeaf() {
+		return l != null && r != null && Objects.equals(l, r - 1);
+	}
+
+	/**
+	 * 获取当前节点左右值长度
+	 *
+	 * @return 返回左右值长度
+	 */
+	public int getLength() {
+		if (l == null || r == null) {
+			return 0;
+		}
+		return r - l + 1;
+	}
+
+	/**
+	 * 获取子节点数量
+	 *
+	 * @return 返回子节点数量
+	 */
+	public int getChildSize() {
+		if (l == null || r == null) {
+			return 0;
+		}
+		return (r - l - 1) / 2;
+	}
+
+	/**
+	 * 判断入参节点是否为当前节点的子节点
+	 *
+	 * @param otherMenu 节点数据
+	 * @return true=是 | false=否
+	 */
+	public boolean isMyChild(SysMenuDO otherMenu) {
+		try {
+			return Objects.equals(rootId, otherMenu.rootId) // 相同的根节点下
+					&& otherMenu.l > this.l && otherMenu.r < this.r; // 左右值在当前节点的左右值范围内
+		} catch (NullPointerException e) {
+			return false;
+		}
 	}
 
 
 	//region Getter and Setter
 
-	public Long getKid() {
-		return kid;
+	public Long getId() {
+		return id;
 	}
 
-	public void setKid(Long kid) {
-		this.kid = kid;
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 	public Long getPid() {
@@ -56,20 +109,20 @@ public class SysMenuDO {
 		this.name = name;
 	}
 
-	public Integer getValueLeft() {
-		return valueLeft;
+	public Integer getL() {
+		return l;
 	}
 
-	public void setValueLeft(Integer valueLeft) {
-		this.valueLeft = valueLeft;
+	public void setL(Integer l) {
+		this.l = l;
 	}
 
-	public Integer getValueRight() {
-		return valueRight;
+	public Integer getRight() {
+		return r;
 	}
 
-	public void setValueRight(Integer valueRight) {
-		this.valueRight = valueRight;
+	public void setR(Integer r) {
+		this.r = r;
 	}
 
 	public Integer getLevel() {

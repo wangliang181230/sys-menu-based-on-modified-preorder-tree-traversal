@@ -3,9 +3,9 @@ package com.mycompany.sys.menu.domain.param;
 public class SysMenuMoveParam {
 
 	/**
-	 * 需要移动的菜单ID
+	 * 需要移动的节点ID
 	 */
-	private Long kid;
+	private Long id;
 
 	/**
 	 * 移到到的目标父ID
@@ -13,12 +13,12 @@ public class SysMenuMoveParam {
 	private Long targetPid;
 
 
-	public Long getKid() {
-		return kid;
+	public Long getId() {
+		return id;
 	}
 
-	public void setKid(Long kid) {
-		this.kid = kid;
+	public void setId(Long id) {
+		this.id = id;
 	}
 
 	public Long getTargetPid() {

@@ -6,32 +6,33 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.mycompany.sys.menu.domain.entity.SysMenuDO;
 
 /**
- * 菜单树形
+ * 节点树形
  */
 public class SysMenuTreeVO extends SysMenuDO {
 
 	/**
-	 * 子菜单列表
+	 * 子节点列表
 	 */
 	@TableField(exist = false)
-	private List<SysMenuTreeVO> childs;
+	private List<SysMenuTreeVO> childList;
 
-	private Boolean isRoot;
+	@TableField(exist = false)
+	private Boolean r;
 
 
-	public List<SysMenuTreeVO> getChilds() {
-		return childs;
+	public List<SysMenuTreeVO> getChildList() {
+		return childList;
 	}
 
-	public void setChilds(List<SysMenuTreeVO> childs) {
-		this.childs = childs;
+	public void setChildList(List<SysMenuTreeVO> childList) {
+		this.childList = childList;
 	}
 
-	public Boolean getRoot() {
-		return isRoot;
+	public Boolean getR() {
+		return r;
 	}
 
-	public void setRoot(Boolean root) {
-		isRoot = root;
+	public void setR(Boolean r) {
+		this.r = r;
 	}
 }

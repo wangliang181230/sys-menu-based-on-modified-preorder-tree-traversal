@@ -1,7 +1,7 @@
 package com.mycompany.sys.menu.domain.param;
 
 /**
- * 菜单查询参数
+ * 节点查询参数
  */
 public class SysMenuQueryParam {
 

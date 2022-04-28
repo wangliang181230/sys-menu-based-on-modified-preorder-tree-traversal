@@ -34,25 +34,25 @@ public interface ISysMenuService extends IService<SysMenuDO> {
 	List<SysMenuTreeVO> findTree(@ModelAttribute SysMenuQueryParam param);
 
 	/**
-	 * 新增一个菜单
+	 * 新增一个节点
 	 *
-	 * @param entity 菜单数据
-	 * @return 菜单ID
+	 * @param entity 节点数据
+	 * @return 节点ID
 	 */
 	Long insertMenu(SysMenuDO entity);
 
 	/**
-	 * 删除一个菜单
+	 * 删除一个节点
 	 *
-	 * @param kid 菜单ID
+	 * @param id 节点ID
 	 */
-	void deleteMenuAndChilds(Long kid);
+	void deleteMenuAndChilds(Long id);
 
 	/**
-	 * 移动菜单
+	 * 移动节点
 	 *
-	 * @param kid             菜单ID
-	 * @param targetParentKid 目标父菜单ID
+	 * @param id        节点ID
+	 * @param targetPid 目标父节点ID
 	 */
-	void moveMenu(Long kid, Long targetParentKid);
+	void moveMenu(Long id, Long targetPid);
 }

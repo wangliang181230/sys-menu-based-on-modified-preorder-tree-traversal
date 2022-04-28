@@ -38,118 +38,106 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 	@Override
 	@Transactional
 	public Long insertMenu(SysMenuDO entity) {
+		if (entity.getId() != null) {
+			throw new RuntimeException("新增操作时，节点ID不允许有值");
+		}
+
 		if (entity.isRoot()) { // 直接新增根节点
-			if (entity.getKid() == null) {
-				entity.setKid(IdWorker.getId()); // ID先生成好，因为要复制给pid和rootId
-			}
-			entity.setPid(entity.getKid()); // 复制kid到pid
-			entity.setRootId(entity.getKid()); // 复制kid到rootId
-			entity.setValueLeft(1);
-			entity.setValueRight(2);
+			entity.setId(IdWorker.getId()); // ID先生成好，因为要复制给pid和rootId（TODO 注意：ID生成方式根据自己的项目进行调整）
+			entity.setPid(entity.getId()); // 复制id到pid
+			entity.setRootId(entity.getId()); // 复制id到rootId
+			entity.setL(1);
+			entity.setR(2);
 			entity.setLevel(1);
 			if (!super.save(entity)) {
-				throw new RuntimeException("新增菜单失败");
+				throw new RuntimeException("新增根节点失败");
 			}
-		} else { // 新增叶节点
-			SysMenuDO parentEntity = super.getById(entity.getPid());
+		} else { // 新增子节点
+			SysMenuDO parentEntity = baseMapper.selectByIdForUpdate(entity.getPid());
 			if (parentEntity == null) {
 				throw new RuntimeException("父节点不存在，id: " + entity.getPid());
 			}
 
-			baseMapper.updateLeftByParentRight(parentEntity.getValueRight(), parentEntity.getRootId());
-			baseMapper.updateRightByParentRight(parentEntity.getValueRight(), parentEntity.getRootId());
+			baseMapper.updateLeftByParentRight(parentEntity.getRight(), parentEntity.getRootId(), 1);
+			baseMapper.updateRightByParentRight(parentEntity.getRight(), parentEntity.getRootId(), 1);
 
 			entity.setRootId(parentEntity.getRootId());
 			if (!SqlHelper.retBool(baseMapper.insertChild(entity, parentEntity))) {
-				throw new RuntimeException("新增叶节点失败");
+				throw new RuntimeException("新增子节点失败");
 			}
 		}
 
-		return entity.getKid();
+		return entity.getId();
 	}
 
 	@Override
 	@Transactional
-	public void deleteMenuAndChilds(Long kid) {
-		SysMenuDO entity = baseMapper.selectByIdForUpdate(kid);
+	public void deleteMenuAndChilds(Long id) {
+		SysMenuDO entity = baseMapper.selectByIdForUpdate(id);
 		if (entity == null) {
 			return; // 已经删除，直接返回成功
 		}
 
-		this.deleteMenuAndChilds(entity);
-	}
-
-	private void deleteMenuAndChilds(SysMenuDO entity) {
-		baseMapper.deleteByParentLeftAndRight(entity.getValueLeft(), entity.getValueRight(), entity.getRootId());
-		baseMapper.updateGreaterThanParentLeft(entity.getValueLeft(), entity.getValueRight(), entity.getRootId());
-		baseMapper.updateGreaterThanParentRight(entity.getValueLeft(), entity.getValueRight(), entity.getRootId());
+		baseMapper.deleteByParentLeftAndRight(entity.getL(), entity.getRight(), entity.getRootId());
+		baseMapper.updateLeftGreaterThanParentLeft(entity.getL(), entity.getRight(), entity.getRootId());
+		baseMapper.updateRightGreaterThanParentRight(entity.getL(), entity.getRight(), entity.getRootId());
 	}
 
 	@Override
 	@Transactional
-	public void moveMenu(Long kid, Long targetParentKid) {
-		// 获取菜单数据
-		SysMenuDO entity = baseMapper.selectByIdForUpdate(kid);
+	public void moveMenu(Long id, Long targetPid) {
+		// 获取节点数据
+		SysMenuDO entity = baseMapper.selectByIdForUpdate(id);
 		if (entity == null) {
-			throw new RuntimeException("菜单数据不存在，id：" + kid);
+			throw new RuntimeException("节点数据不存在，id：" + id);
 		}
-		if (Objects.equals(entity.getPid(), targetParentKid)) {
+		if (Objects.equals(entity.getPid(), targetPid)) {
 			return; // 父ID已经是目标父ID了，支持幂等
 		}
 
-		SysMenuDO targetParent;
-		if (!Objects.equals(kid, targetParentKid)) {
-			// 获取目标父菜单数据
-			targetParent = super.getById(targetParentKid);
+		if (!Objects.equals(id, targetPid)) { // 转移到目标父节点下
+			// 获取目标父节点数据
+			SysMenuDO targetParent = baseMapper.selectByIdForUpdate(targetPid);
 			if (targetParent == null) {
-				throw new RuntimeException("目标父菜单数据不存在，id：" + targetParentKid);
+				throw new RuntimeException("移动到的目标父节点数据不存在，id：" + targetPid);
 			}
-		} else {
-			targetParent = entity;
-		}
 
-		// 删除菜单前，先把所有子菜单全部获取出来
-		List<SysMenuTreeVO> childs = this.findChilds(entity);
-		if (entity != targetParent) { // 不移动到根节点时，校验移动目标是否为子节点
-			if (childs.stream().anyMatch(menu -> Objects.equals(menu.getKid(), targetParentKid))) {
-				throw new RuntimeException("无法移动到自己的子节点");
+			// 判断是否为当前节点的子节点
+			if (entity.isMyChild(targetParent)) {
+				throw new RuntimeException("无法移动到自己的子节点下");
 			}
-		}
 
-		// 先删除当前菜单及其所有子菜单
-		this.deleteMenuAndChilds(entity);
-
-		// 设置新的父菜单ID和根节点，再新增菜单
-		entity.setPid(targetParentKid);
-		if (!Objects.equals(entity.getRootId(), targetParent.getRootId())) {
-			entity.setRootId(targetParent.getRootId());
-			for (SysMenuTreeVO child : childs) {
-				child.setRootId(entity.getRootId());
+			// 移动到目标父节点
+			// 先更新受影响的节点的左右值
+			int moveSize = entity.getLength() / 2; // 被移动的节点数量
+			baseMapper.updateLeftByParentRight(targetParent.getRight(), targetParent.getRootId(), moveSize);
+			baseMapper.updateRightByParentRight(targetParent.getRight(), targetParent.getRootId(), moveSize);
+			// 再更新移动节点的左右值及rootId
+			baseMapper.updateLeftAndRightForMoves(targetParent.getRight(), entity.getRootId(), entity.getL(), entity.getRight(), targetParent.getRootId(), entity.getLevel(), targetParent.getLevel());
+			baseMapper.updatePid(entity.getId(), targetParent.getId());
+			// 不是根节点，移出时，更新受影响节点的左右值
+			if (!entity.isRoot()) {
+				baseMapper.updateLeftGreaterThanParentLeft(entity.getL(), entity.getRight(), entity.getRootId());
+				baseMapper.updateRightGreaterThanParentRight(entity.getL(), entity.getRight(), entity.getRootId());
 			}
+		} else { // 将当前节点与原父节点分离，转换为独立的根节点（带上其子节点）
+			if (entity.isRoot()) {
+				return; // 已经是根节点，无需处理
+			}
+
+			// 获取目标父节点数据
+			SysMenuDO targetParent = baseMapper.selectByIdForUpdate(entity.getPid());
+			if (targetParent == null) {
+				throw new RuntimeException("父节点数据不存在，id：" + targetPid);
+			}
+
+			// 移出父节点
+			// 先更新移动的节点的左右值
+			baseMapper.updateLeftAndRightForMoves2(entity.getId(), entity.getRootId(), entity.getL(), entity.getRight(), entity.getLevel());
+			baseMapper.updatePid(entity.getId(), entity.getId());
+			// 再更新受影响的节点的左右值
+			baseMapper.updateLeftGreaterThanParentLeft(entity.getL(), entity.getRight(), entity.getRootId());
+			baseMapper.updateRightGreaterThanParentRight(entity.getL(), entity.getRight(), entity.getRootId());
 		}
-		this.insertMenu(entity);
-
-		// 重新新增所有子菜单
-		childs = MenuUtils.listToTree(childs); // 转为树型
-		this.saveChilds(childs);
-	}
-
-	private void saveChilds(List<SysMenuTreeVO> childs) {
-		if (childs == null) {
-			return;
-		}
-		for (SysMenuTreeVO menu : childs) {
-			this.insertMenu(menu);
-			this.saveChilds(menu.getChilds()); // 递归
-		}
-	}
-
-	private List<SysMenuTreeVO> findChilds(SysMenuDO entity) {
-		SysMenuQueryParam param = new SysMenuQueryParam();
-		param.setRootId(entity.getRootId());
-		param.setParentLeft(entity.getValueLeft());
-		param.setParentRight(entity.getValueRight());
-
-		return baseMapper.findVOList(param);
 	}
 }

@@ -18,7 +18,7 @@ public class Swagger2Config {
 	@Bean
 	public Docket createRestApi() {
 		return new Docket(DocumentationType.SWAGGER_2)
-				.groupName("系统菜单")
+				.groupName("系统节点")
 				.apiInfo(apiInfo())
 				.select()
 				.apis(RequestHandlerSelectors.basePackage("com.mycompany.sys.menu.controller"))
@@ -29,7 +29,7 @@ public class Swagger2Config {
 	private ApiInfo apiInfo() {
 		Contact contact = new Contact("wl", "", "");
 		return new ApiInfoBuilder()
-				.title("左右值树形菜单接口")
+				.title("左右值树形节点接口")
 				.contact(contact)
 				.build();
 	}

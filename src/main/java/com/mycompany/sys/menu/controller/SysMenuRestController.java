@@ -40,8 +40,8 @@ public class SysMenuRestController {
 	}
 
 	@GetMapping("/get")
-	public SysMenuDO get(@RequestParam Long kid) {
-		return sysMenuService.getById(kid);
+	public SysMenuDO get(@RequestParam Long id) {
+		return sysMenuService.getById(id);
 	}
 
 	@PostMapping("/insert")
@@ -50,12 +50,12 @@ public class SysMenuRestController {
 	}
 
 	@PostMapping("/delete")
-	public void delete(@RequestParam Long kid) {
-		sysMenuService.deleteMenuAndChilds(kid);
+	public void delete(@RequestParam Long id) {
+		sysMenuService.deleteMenuAndChilds(id);
 	}
 
 	@PostMapping("/move")
 	public void move(@RequestBody SysMenuMoveParam param) {
-		sysMenuService.moveMenu(param.getKid(), param.getTargetPid());
+		sysMenuService.moveMenu(param.getId(), param.getTargetPid());
 	}
 }
