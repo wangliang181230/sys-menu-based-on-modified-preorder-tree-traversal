@@ -19,5 +19,3 @@ mybatis-plus:
 
 logging:
   config: ${easyj.logging.logback.config}
-  level:
-    root: warn
