@@ -41,7 +41,9 @@
 				<th style='text-align: right'>左值</th>
 				<th class='name-head'>节点名称</th>
 				<th>右值</th>
+				<th>子节点数</th>
 				<th>层级</th>
+				<th>类型</th>
 				<th>操作</th>
 			</tr>
 			</thead>
@@ -77,7 +79,9 @@
 						"<td style='text-align: right'>" + menu.l + "</td>" +
 						"<td>" + s + menu.name + "</td>" +
 						"<td>" + menu.r + "</td>" +
+						"<td>" + menu.childSize + "</td>" +
 						"<td>" + menu.level + "</td>" +
+						"<td>" + (menu.leaf ? "叶节点" : (menu.root ? "根节点" : "")) + "</td>" +
 						"<td>" +
 						"	<a href=\"javascript:del('" + menu.id + "')\">删除</a>" +
 						"</td>" +
