@@ -31,30 +31,33 @@
 	</form>
 
 	<div><input value="刷新" type="button" onclick="loadTree()"/></div>
-	<div id="treePanel" style="margin-top: 5px"></div>
+	<div id="treePanel" style="margin-top: 5px">
+		<table border='1' cellspacing='1' style='border-collapse:collapse'>
+			<thead>
+			<tr>
+				<th>id</th>
+				<th>pid</th>
+				<th>rootId</th>
+				<th>left</th>
+				<th class='name-head'>name</th>
+				<th>right</th>
+				<th>level</th>
+				<th>操作</th>
+			</tr>
+			</thead>
+			<tbody id="treeTableBody">
+			</tbody>
+		</table>
+	</div>
 
 	<script>
 		function loadTree() {
 			$.ajax({
 				url: "./api/v1/sys-menu/tree",
 				success: function (tree) {
-					let html = "<table border='1' cellspacing='1' style='border-collapse:collapse'>" +
-							"<thead>" +
-							"<tr>" +
-							"<th>id</th>" +
-							"<th>pid</th>" +
-							"<th>rootId</th>" +
-							"<th>left</th>" +
-							"<th class='name-head'>name</th>" +
-							"<th>right</th>" +
-							"<th>level</th>" +
-							"<th>操作</th>" +
-							"</tr>" +
-							"</thead>" +
-							"<tbody>";
+					let html = "";
 					html += buildTreeHtml(tree, "");
-					html += "</tbody></table>"
-					$("#treePanel").html(html).hide().fadeIn(400);
+					$("#treeTableBody").html(html).hide().fadeIn(400);
 				}
 			});
 		}
