@@ -14,6 +14,10 @@
 		.name-head {
 			text-align: left;
 		}
+
+		.b {
+			font-weight: bolder;
+		}
 	</style>
 </head>
 <body>
@@ -76,9 +80,9 @@
 						"<td>" + menu.id + "</td>" +
 						"<td>" + menu.pid + "</td>" +
 						"<td>" + menu.rootId + "</td>" +
-						"<td style='text-align: right'>" + menu.l + "</td>" +
+						"<td class='b' style='text-align: right'>" + menu.l + "</td>" +
 						"<td>" + s + menu.name + "</td>" +
-						"<td>" + menu.r + "</td>" +
+						"<td class='b'>" + menu.r + "</td>" +
 						"<td>" + menu.childSize + "</td>" +
 						"<td>" + menu.level + "</td>" +
 						"<td>" + (menu.root ? "根节点" : "") + (menu.leaf ? (menu.root ? "、" : "") + "叶节点" : "") + "</td>" +
