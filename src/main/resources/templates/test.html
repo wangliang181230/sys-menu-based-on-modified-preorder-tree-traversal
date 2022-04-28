@@ -81,7 +81,7 @@
 						"<td>" + menu.r + "</td>" +
 						"<td>" + menu.childSize + "</td>" +
 						"<td>" + menu.level + "</td>" +
-						"<td>" + (menu.leaf ? "叶节点" : (menu.root ? "根节点" : "")) + "</td>" +
+						"<td>" + (menu.root ? "根节点" : "") + (menu.leaf ? (menu.root ? "、" : "") + "叶节点" : "") + "</td>" +
 						"<td>" +
 						"	<a href=\"javascript:del('" + menu.id + "')\">删除</a>" +
 						"</td>" +
