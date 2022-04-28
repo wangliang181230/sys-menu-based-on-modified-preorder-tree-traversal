@@ -12,6 +12,7 @@
 			<if test="parentLeft != null ">AND t.left > #{parentLeft}</if>
 			<if test="parentRight != null ">AND t.right &lt;= #{parentRight}</if>
 		</where>
+		ORDER BY t.root_id, t.l
 	</select>
 
 	<select id="findList" resultType="com.mycompany.sys.menu.domain.entity.SysMenuDO"
@@ -24,5 +25,6 @@
 			<if test="parentLeft != null ">AND t.left > #{parentLeft}</if>
 			<if test="parentRight != null ">AND t.right &lt;= #{parentRight}</if>
 		</where>
+		ORDER BY t.root_id, t.l
 	</select>
 </mapper>
