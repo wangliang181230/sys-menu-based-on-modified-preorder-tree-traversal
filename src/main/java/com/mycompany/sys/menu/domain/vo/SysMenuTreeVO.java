@@ -17,7 +17,7 @@ public class SysMenuTreeVO extends SysMenuDO {
 	private List<SysMenuTreeVO> childList;
 
 	@TableField(exist = false)
-	private Boolean r;
+	private Boolean c;
 
 
 	public List<SysMenuTreeVO> getChildList() {
@@ -28,11 +28,11 @@ public class SysMenuTreeVO extends SysMenuDO {
 		this.childList = childList;
 	}
 
-	public Boolean getR() {
-		return r;
+	public Boolean getC() {
+		return c;
 	}
 
-	public void setR(Boolean r) {
-		this.r = r;
+	public void setC(Boolean c) {
+		this.c = c;
 	}
 }

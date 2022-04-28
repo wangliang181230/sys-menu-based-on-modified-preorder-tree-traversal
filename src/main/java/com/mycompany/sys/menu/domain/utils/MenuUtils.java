@@ -23,7 +23,7 @@ public abstract class MenuUtils {
 		}
 
 		// 去掉不是根节点的
-		rootMenu.removeIf(menu -> Boolean.FALSE.equals(menu.getR()));
+		rootMenu.removeIf(menu -> Boolean.FALSE.equals(menu.getC()));
 
 		return rootMenu;
 	}
@@ -40,7 +40,7 @@ public abstract class MenuUtils {
 		for (SysMenuTreeVO nav : list) {
 			if (Objects.equals(nav.getPid(), id) && !Objects.equals(nav.getId(), id)) {
 				childList.add(nav);
-				nav.setR(false);
+				nav.setC(false);
 			}
 		}
 		for (SysMenuTreeVO nav : childList) {
