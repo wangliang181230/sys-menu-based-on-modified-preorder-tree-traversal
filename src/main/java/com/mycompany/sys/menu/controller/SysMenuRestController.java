@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.mycompany.sys.menu.business.service.ISysMenuService;
 import com.mycompany.sys.menu.domain.entity.SysMenuDO;
+import com.mycompany.sys.menu.domain.param.SysMenuInsertParam;
 import com.mycompany.sys.menu.domain.param.SysMenuMoveParam;
 import com.mycompany.sys.menu.domain.param.SysMenuQueryParam;
 import com.mycompany.sys.menu.domain.vo.SysMenuTreeVO;
@@ -45,7 +46,7 @@ public class SysMenuRestController {
 	}
 
 	@PostMapping("/insert")
-	public Long insert(@RequestBody SysMenuDO param) {
+	public Long insert(@RequestBody SysMenuInsertParam param) {
 		return sysMenuService.insertMenu(param);
 	}
 

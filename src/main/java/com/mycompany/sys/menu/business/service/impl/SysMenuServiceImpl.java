@@ -9,6 +9,7 @@ import com.baomidou.mybatisplus.extension.toolkit.SqlHelper;
 import com.mycompany.sys.menu.business.mapper.SysMenuMapper;
 import com.mycompany.sys.menu.business.service.ISysMenuService;
 import com.mycompany.sys.menu.domain.entity.SysMenuDO;
+import com.mycompany.sys.menu.domain.param.SysMenuInsertParam;
 import com.mycompany.sys.menu.domain.param.SysMenuQueryParam;
 import com.mycompany.sys.menu.domain.utils.MenuUtils;
 import com.mycompany.sys.menu.domain.vo.SysMenuTreeVO;
@@ -37,10 +38,10 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 
 	@Override
 	@Transactional
-	public Long insertMenu(SysMenuDO entity) {
-		if (entity.getId() != null) {
-			throw new RuntimeException("新增操作时，节点ID不允许有值");
-		}
+	public Long insertMenu(SysMenuInsertParam param) {
+		SysMenuDO entity = new SysMenuDO();
+		entity.setName(param.getName());
+		entity.setPid(param.getPid());
 
 		if (entity.isRoot()) { // 直接新增根节点
 			entity.setId(IdWorker.getId()); // ID先生成好，因为要复制给pid和rootId（TODO 注意：ID生成方式根据自己的项目进行调整）
@@ -58,8 +59,8 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 				throw new RuntimeException("父节点不存在，id: " + entity.getPid());
 			}
 
-			baseMapper.updateLeftByParentRight(parentEntity.getRight(), parentEntity.getRootId(), 1);
-			baseMapper.updateRightByParentRight(parentEntity.getRight(), parentEntity.getRootId(), 1);
+			baseMapper.updateLeftByParentRight(parentEntity.getR(), parentEntity.getRootId(), 1);
+			baseMapper.updateRightByParentRight(parentEntity.getR(), parentEntity.getRootId(), 1);
 
 			entity.setRootId(parentEntity.getRootId());
 			if (!SqlHelper.retBool(baseMapper.insertChild(entity, parentEntity))) {
@@ -78,9 +79,9 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 			return; // 已经删除，直接返回成功
 		}
 
-		baseMapper.deleteByParentLeftAndRight(entity.getL(), entity.getRight(), entity.getRootId());
-		baseMapper.updateLeftGreaterThanParentLeft(entity.getL(), entity.getRight(), entity.getRootId());
-		baseMapper.updateRightGreaterThanParentRight(entity.getL(), entity.getRight(), entity.getRootId());
+		baseMapper.deleteByParentLeftAndRight(entity.getL(), entity.getR(), entity.getRootId());
+		baseMapper.updateLeftGreaterThanParentLeft(entity.getL(), entity.getR(), entity.getRootId());
+		baseMapper.updateRightGreaterThanParentRight(entity.getL(), entity.getR(), entity.getRootId());
 	}
 
 	@Override
@@ -110,15 +111,15 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 			// 移动到目标父节点
 			// 先更新受影响的节点的左右值
 			int moveSize = entity.getLength() / 2; // 被移动的节点数量
-			baseMapper.updateLeftByParentRight(targetParent.getRight(), targetParent.getRootId(), moveSize);
-			baseMapper.updateRightByParentRight(targetParent.getRight(), targetParent.getRootId(), moveSize);
+			baseMapper.updateLeftByParentRight(targetParent.getR(), targetParent.getRootId(), moveSize);
+			baseMapper.updateRightByParentRight(targetParent.getR(), targetParent.getRootId(), moveSize);
 			// 再更新移动节点的左右值及rootId
-			baseMapper.updateLeftAndRightForMoves(targetParent.getRight(), entity.getRootId(), entity.getL(), entity.getRight(), targetParent.getRootId(), entity.getLevel(), targetParent.getLevel());
+			baseMapper.updateLeftAndRightForMoves(targetParent.getR(), entity.getRootId(), entity.getL(), entity.getR(), targetParent.getRootId(), entity.getLevel(), targetParent.getLevel());
 			baseMapper.updatePid(entity.getId(), targetParent.getId());
 			// 不是根节点，移出时，更新受影响节点的左右值
 			if (!entity.isRoot()) {
-				baseMapper.updateLeftGreaterThanParentLeft(entity.getL(), entity.getRight(), entity.getRootId());
-				baseMapper.updateRightGreaterThanParentRight(entity.getL(), entity.getRight(), entity.getRootId());
+				baseMapper.updateLeftGreaterThanParentLeft(entity.getL(), entity.getR(), entity.getRootId());
+				baseMapper.updateRightGreaterThanParentRight(entity.getL(), entity.getR(), entity.getRootId());
 			}
 		} else { // 将当前节点与原父节点分离，转换为独立的根节点（带上其子节点）
 			if (entity.isRoot()) {
@@ -133,11 +134,11 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 
 			// 移出父节点
 			// 先更新移动的节点的左右值
-			baseMapper.updateLeftAndRightForMoves2(entity.getId(), entity.getRootId(), entity.getL(), entity.getRight(), entity.getLevel());
+			baseMapper.updateLeftAndRightForMoves2(entity.getId(), entity.getRootId(), entity.getL(), entity.getR(), entity.getLevel());
 			baseMapper.updatePid(entity.getId(), entity.getId());
 			// 再更新受影响的节点的左右值
-			baseMapper.updateLeftGreaterThanParentLeft(entity.getL(), entity.getRight(), entity.getRootId());
-			baseMapper.updateRightGreaterThanParentRight(entity.getL(), entity.getRight(), entity.getRootId());
+			baseMapper.updateLeftGreaterThanParentLeft(entity.getL(), entity.getR(), entity.getRootId());
+			baseMapper.updateRightGreaterThanParentRight(entity.getL(), entity.getR(), entity.getRootId());
 		}
 	}
 }

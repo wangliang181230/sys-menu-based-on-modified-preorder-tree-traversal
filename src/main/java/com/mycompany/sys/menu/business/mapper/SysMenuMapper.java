@@ -36,8 +36,8 @@ public interface SysMenuMapper extends BaseMapper<SysMenuDO> {
 	default int insertChild(SysMenuDO childMenu, SysMenuDO parent) {
 		childMenu.setPid(parent.getId());
 		childMenu.setRootId(parent.getRootId());
-		childMenu.setL(parent.getRight());
-		childMenu.setR(parent.getRight() + 1);
+		childMenu.setL(parent.getR());
+		childMenu.setR(parent.getR() + 1);
 		childMenu.setLevel(parent.getLevel() + 1);
 		return this.insert(childMenu);
 	}

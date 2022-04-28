@@ -117,7 +117,7 @@ public class SysMenuDO {
 		this.l = l;
 	}
 
-	public Integer getRight() {
+	public Integer getR() {
 		return r;
 	}
 

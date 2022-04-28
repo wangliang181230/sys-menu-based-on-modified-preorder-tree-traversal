@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.mycompany.sys.menu.domain.entity.SysMenuDO;
+import com.mycompany.sys.menu.domain.param.SysMenuInsertParam;
 import com.mycompany.sys.menu.domain.param.SysMenuQueryParam;
 import com.mycompany.sys.menu.domain.vo.SysMenuTreeVO;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -36,10 +37,10 @@ public interface ISysMenuService extends IService<SysMenuDO> {
 	/**
 	 * 新增一个节点
 	 *
-	 * @param entity 节点数据
+	 * @param param 新增节点参数
 	 * @return 节点ID
 	 */
-	Long insertMenu(SysMenuDO entity);
+	Long insertMenu(SysMenuInsertParam param);
 
 	/**
 	 * 删除一个节点
