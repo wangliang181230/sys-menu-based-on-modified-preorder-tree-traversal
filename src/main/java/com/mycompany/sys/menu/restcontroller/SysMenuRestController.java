@@ -1,4 +1,4 @@
-package com.mycompany.sys.menu.controller;
+package com.mycompany.sys.menu.restcontroller;
 
 import java.util.List;
 

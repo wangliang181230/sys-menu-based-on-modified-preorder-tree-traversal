@@ -21,7 +21,7 @@ public class Swagger2Config {
 				.groupName("系统节点")
 				.apiInfo(apiInfo())
 				.select()
-				.apis(RequestHandlerSelectors.basePackage("com.mycompany.sys.menu.controller"))
+				.apis(RequestHandlerSelectors.basePackage("com.mycompany.sys.menu.restcontroller"))
 				.paths(PathSelectors.any())
 				.build();
 	}
