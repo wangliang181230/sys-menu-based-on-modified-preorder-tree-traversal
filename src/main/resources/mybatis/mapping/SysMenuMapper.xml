@@ -14,7 +14,7 @@
 		</where>
 	</select>
 
-	<select id="findList" resultType="com.mycompany.sys.menu.domain.vo.SysMenuTreeVO"
+	<select id="findList" resultType="com.mycompany.sys.menu.domain.entity.SysMenuDO"
 			parameterType="com.mycompany.sys.menu.domain.entity.SysMenuDO">
 		SELECT `id` , `pid`, `name`, `l`, `r`, `level`, `root_id`
 		FROM sys_menu t

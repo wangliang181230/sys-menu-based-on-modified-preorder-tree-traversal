@@ -21,7 +21,7 @@ public interface SysMenuMapper extends BaseMapper<SysMenuDO> {
 
 	List<SysMenuDO> findList(SysMenuQueryParam param);
 
-	@Select("SELECT * from sys_menu WHERE id = #{id} FOR UPDATE")
+	@Select("SELECT * FROM sys_menu WHERE id = #{id} FOR UPDATE")
 	SysMenuDO selectByIdForUpdate(Long id);
 
 
