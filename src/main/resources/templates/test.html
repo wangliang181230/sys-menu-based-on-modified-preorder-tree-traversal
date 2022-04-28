@@ -35,13 +35,13 @@
 		<table border='1' cellspacing='1' style='border-collapse:collapse'>
 			<thead>
 			<tr>
-				<th>id</th>
-				<th>pid</th>
-				<th>rootId</th>
-				<th>left</th>
-				<th class='name-head'>name</th>
-				<th>right</th>
-				<th>level</th>
+				<th>ID</th>
+				<th>父ID</th>
+				<th>根ID</th>
+				<th style='text-align: right'>左值</th>
+				<th class='name-head'>节点名称</th>
+				<th>右值</th>
+				<th>层级</th>
 				<th>操作</th>
 			</tr>
 			</thead>
@@ -74,15 +74,15 @@
 						"<td>" + menu.id + "</td>" +
 						"<td>" + menu.pid + "</td>" +
 						"<td>" + menu.rootId + "</td>" +
-						"<td>" + menu.l + "</td>" +
+						"<td style='text-align: right'>" + menu.l + "</td>" +
 						"<td>" + s + menu.name + "</td>" +
 						"<td>" + menu.r + "</td>" +
 						"<td>" + menu.level + "</td>" +
 						"<td>" +
-						"    <a href=\"javascript:del('" + menu.id + "')\">删除</a>" +
+						"	<a href=\"javascript:del('" + menu.id + "')\">删除</a>" +
 						"</td>" +
 						"</tr>";
-				html += buildTreeHtml(menu.childList, s + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+				html += buildTreeHtml(menu.childList, s + "—&nbsp;");
 			}
 			return html;
 		}
