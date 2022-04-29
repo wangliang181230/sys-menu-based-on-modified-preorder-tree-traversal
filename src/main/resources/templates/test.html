@@ -27,6 +27,7 @@
 		<label for="pid">父节点ID：</label><input id="pid" name="pid" type="text"/>
 		<input value="提交" type="button" onclick="insert()"/>
 	</form>
+
 	<form id="movePanel">
 		移动：
 		<label for="id">节点ID：</label><input id="id" name="id" type="text"/>
@@ -34,9 +35,11 @@
 		<input value="提交" type="button" onclick="move()"/>
 	</form>
 
+	<hr/>
+
 	<div><input value="刷新" type="button" onclick="loadTree()"/></div>
 	<div id="treePanel" style="margin-top: 5px">
-		<table border='1' cellspacing='1' style='border-collapse:collapse'>
+		<table style='border-collapse:collapse'>
 			<thead>
 			<tr>
 				<th>ID</th>
@@ -77,18 +80,18 @@
 			for (let i = 0; i < tree.length; i++) {
 				let menu = tree[i];
 				html += "<tr>" +
-						"<td>" + menu.id + "</td>" +
-						"<td>" + menu.pid + "</td>" +
-						"<td>" + menu.rootId + "</td>" +
-						"<td class='b' style='text-align: right'>" + menu.l + "</td>" +
-						"<td>" + s + menu.name + "</td>" +
-						"<td class='b'>" + menu.r + "</td>" +
-						"<td>" + menu.childSize + "</td>" +
-						"<td>" + menu.level + "</td>" +
-						"<td>" + (menu.root ? "根节点" : "") + (menu.leaf ? (menu.root ? "、" : "") + "叶节点" : "") + "</td>" +
-						"<td>" +
-						"	<a href=\"javascript:del('" + menu.id + "')\">删除</a>" +
-						"</td>" +
+						"	<td>" + menu.id + "</td>" +
+						"	<td>" + menu.pid + "</td>" +
+						"	<td>" + menu.rootId + "</td>" +
+						"	<td class='b' style='text-align: right'>" + menu.l + "</td>" +
+						"	<td>" + s + menu.name + "</td>" +
+						"	<td class='b'>" + menu.r + "</td>" +
+						"	<td>" + menu.childSize + "</td>" +
+						"	<td>" + menu.level + "</td>" +
+						"	<td>" + (menu.root ? "根节点" : "") + (menu.leaf ? (menu.root ? "、" : "") + "叶节点" : "") + "</td>" +
+						"	<td>" +
+						"		<a href=\"javascript:del('" + menu.id + "')\">删除</a>" +
+						"	</td>" +
 						"</tr>";
 				html += buildTreeHtml(menu.childList, s + "—&nbsp;");
 			}
