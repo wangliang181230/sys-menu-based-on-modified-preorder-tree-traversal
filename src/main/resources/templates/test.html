@@ -84,8 +84,8 @@
 				if (parent) {
 					if (menu.rootId !== parent.rootId) menu.remark += "与父节点不同根；";
 					if (menu.level !== parent.level + 1) menu.remark += "level有误；";
-					if (menu.l <= parent.l) menu.remark += "左值有误；";
-					if (menu.r >= parent.r) menu.remark += "右值有误；";
+					if (menu.l <= parent.l) menu.remark += "左值不能<=父左值；";
+					if (menu.r >= parent.r) menu.remark += "右值不能>=父右值；";
 				}
 				if (menu.l <= 0) menu.remark += "左值不能 <= 0；";
 				if (menu.l >= menu.r) menu.remark += "左值不能 >= 右值"
