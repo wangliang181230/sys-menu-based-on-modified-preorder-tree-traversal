@@ -109,11 +109,11 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 			}
 
 			// 移动到目标父节点
-			// 先更新受影响的节点的左右值
+			// 先更新受影响的节点的左右值（不包含 被移动节点）
 			int moveSize = entity.getLength() / 2; // 被移动的节点数量
-			baseMapper.updateLeftByParentRight(targetParent.getR(), targetParent.getRootId(), moveSize);
-			baseMapper.updateRightByParentRight(targetParent.getR(), targetParent.getRootId(), moveSize);
-			// 再更新移动节点的左右值及rootId
+			baseMapper.updateLeftByParentRight2(targetParent.getR(), targetParent.getRootId(), moveSize, entity.getL(), entity.getR());
+			baseMapper.updateRightByParentRight2(targetParent.getR(), targetParent.getRootId(), moveSize, entity.getL(), entity.getR());
+			// 再更新 ”被移动节点“ 的左右值及rootId
 			baseMapper.updateLeftAndRightForMoves(targetParent.getR(), entity.getRootId(), entity.getL(), entity.getR(), targetParent.getRootId(), entity.getLevel(), targetParent.getLevel());
 			baseMapper.updatePid(entity.getId(), targetParent.getId());
 			// 不是根节点，移出时，更新受影响节点的左右值

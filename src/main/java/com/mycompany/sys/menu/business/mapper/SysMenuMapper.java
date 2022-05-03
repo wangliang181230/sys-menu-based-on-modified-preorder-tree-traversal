@@ -14,7 +14,7 @@ import org.apache.ibatis.annotations.Update;
 @Mapper
 public interface SysMenuMapper extends BaseMapper<SysMenuDO> {
 
-	@Select("SELECT * FROM sys_menu WHERE pid is null OR pid = 0 OR pid = id")
+	@Select("SELECT * FROM sys_menu WHERE pid IS NULL OR pid = 0 OR pid = id")
 	List<SysMenuTreeVO> findRootList();
 
 	List<SysMenuTreeVO> findVOList(SysMenuQueryParam param);
@@ -27,10 +27,12 @@ public interface SysMenuMapper extends BaseMapper<SysMenuDO> {
 
 	//region 新增子节点所需的SQL
 
-	@Update("UPDATE sys_menu SET l = l + 2 * #{childSize} WHERE l >= #{parentRight} AND root_id = #{rootId}")
+	@Update("UPDATE sys_menu SET l = l + 2 * #{childSize}" +
+			" WHERE l >= #{parentRight} AND root_id = #{rootId}")
 	int updateLeftByParentRight(Integer parentRight, Long rootId, Integer childSize);
 
-	@Update("UPDATE sys_menu SET r = r + 2 * #{childSize} WHERE r >= #{parentRight} AND root_id = #{rootId}")
+	@Update("UPDATE sys_menu SET r = r + 2 * #{childSize}" +
+			" WHERE r >= #{parentRight} AND root_id = #{rootId}")
 	int updateRightByParentRight(Integer parentRight, Long rootId, Integer childSize);
 
 	default int insertChild(SysMenuDO childMenu, SysMenuDO parent) {
@@ -65,12 +67,24 @@ public interface SysMenuMapper extends BaseMapper<SysMenuDO> {
 
 	//region 节点移动到其他节点下所需的SQL
 
+	@Update("UPDATE sys_menu SET l = l + 2 * #{childSize}" +
+			" WHERE l >= #{parentRight} AND root_id = #{rootId}" +
+			"   AND id NOT IN ( SELECT A.id FROM (SELECT id FROM sys_menu WHERE root_id = #{rootId} AND l >= #{left} AND r <= #{right}) A )" // 不包含 被移动节点
+	)
+	int updateLeftByParentRight2(Integer parentRight, Long rootId, Integer childSize, Integer left, Integer right);
+
+	@Update("UPDATE sys_menu SET r = r + 2 * #{childSize}" +
+			" WHERE r >= #{parentRight} AND root_id = #{rootId}" +
+			"   AND id NOT IN ( SELECT A.id FROM (SELECT id FROM sys_menu WHERE root_id = #{rootId} AND l >= #{left} AND r <= #{right}) A )" // 不包含 被移动节点
+	)
+	int updateRightByParentRight2(Integer parentRight, Long rootId, Integer childSize, Integer left, Integer right);
+
 	@Update("UPDATE sys_menu" +
 			"   SET l = l + (#{parentRight} - #{left})," +
 			"       r = r + (#{parentRight} - #{left})," +
 			"       level = level + (#{targetLevel} - #{level} + 1)," +
 			"       root_id = #{targetRootId}" +
-			" WHERE root_id = #{rootId} AND l >= #{left} AND r <= #{right}" // 移动节点
+			" WHERE root_id = #{rootId} AND l >= #{left} AND r <= #{right}" // 被移动节点
 	)
 	int updateLeftAndRightForMoves(Integer parentRight, Long rootId, Integer left, Integer right, Long targetRootId, Integer level, Integer targetLevel);
 
@@ -86,7 +100,7 @@ public interface SysMenuMapper extends BaseMapper<SysMenuDO> {
 			"       r = r - (#{left} - 1)," +
 			"       level = level - (#{level} - 1)," +
 			"       root_id = #{id}" +
-			" WHERE root_id = #{rootId} AND l >= #{left} AND r <= #{right}" // 移动节点
+			" WHERE root_id = #{rootId} AND l >= #{left} AND r <= #{right}" // 被移动节点
 	)
 	int updateLeftAndRightForMoves2(Long id, Long rootId, Integer left, Integer right, Integer level);
 
