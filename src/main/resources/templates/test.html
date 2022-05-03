@@ -52,6 +52,7 @@
 				<th>层级</th>
 				<th>类型</th>
 				<th>操作</th>
+				<th>错误检测</th>
 			</tr>
 			</thead>
 			<tbody id="treeTableBody">
@@ -71,7 +72,7 @@
 			});
 		}
 
-		function buildTreeHtml(tree, s) {
+		function buildTreeHtml(tree, s, parent) {
 			if (!tree || tree.length === 0) {
 				return "";
 			}
@@ -79,6 +80,15 @@
 			let html = "";
 			for (let i = 0; i < tree.length; i++) {
 				let menu = tree[i];
+				menu.remark = "";
+				if (parent) {
+					if (menu.rootId !== parent.rootId) menu.remark += "与父节点不同根；";
+					if (menu.level !== parent.level + 1) menu.remark += "level有误；";
+					if (menu.l <= parent.l) menu.remark += "左值有误；";
+					if (menu.r >= parent.r) menu.remark += "右值有误；";
+				}
+				if (menu.l <= 0) menu.remark += "左值不能 <= 0；";
+				if (menu.l >= menu.r) menu.remark += "左值不能 >= 右值"
 				html += "<tr>" +
 						"	<td>" + menu.id + "</td>" +
 						"	<td>" + menu.pid + "</td>" +
@@ -92,8 +102,9 @@
 						"	<td>" +
 						"		<a href=\"javascript:del('" + menu.id + "')\">删除</a>" +
 						"	</td>" +
+						"	<td style='color: red'>" + menu.remark + "</td>" +
 						"</tr>";
-				html += buildTreeHtml(menu.childList, s + "—&nbsp;");
+				html += buildTreeHtml(menu.childList, s + "—&nbsp;", menu);
 			}
 			return html;
 		}

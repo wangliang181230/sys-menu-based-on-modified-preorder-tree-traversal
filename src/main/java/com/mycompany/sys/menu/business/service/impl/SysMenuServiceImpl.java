@@ -44,9 +44,10 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 		entity.setPid(param.getPid());
 
 		if (entity.isRoot()) { // 直接新增根节点
-			entity.setId(IdWorker.getId()); // ID先生成好，因为要复制给pid和rootId（TODO 注意：ID生成方式根据自己的项目进行调整）
+			entity.setId(IdWorker.getId()); // ID先生成好，因为要复制给pid和rootId（TODO: 注意，ID生成方式根据自己的项目进行调整）
 			entity.setPid(entity.getId()); // 复制id到pid
 			entity.setRootId(entity.getId()); // 复制id到rootId
+			// 新的节点，左右值及level都是固定值
 			entity.setL(1);
 			entity.setR(2);
 			entity.setLevel(1);
@@ -109,19 +110,19 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 			}
 
 			// 移动到目标父节点
-			// 先更新受影响的节点的左右值（不包含 被移动节点）
-			int moveSize = entity.getLength() / 2; // 被移动的节点数量
+			// 先更新受影响的目标父节点及其相关节点的左右值（不包含 被移动节点）
+			int moveSize = entity.getLength() / 2; // 被移动节点的数量
 			baseMapper.updateLeftByParentRight2(targetParent.getR(), targetParent.getRootId(), moveSize, entity.getL(), entity.getR());
 			baseMapper.updateRightByParentRight2(targetParent.getR(), targetParent.getRootId(), moveSize, entity.getL(), entity.getR());
 			// 再更新 ”被移动节点“ 的左右值及rootId
 			baseMapper.updateLeftAndRightForMoves(targetParent.getR(), entity.getRootId(), entity.getL(), entity.getR(), targetParent.getRootId(), entity.getLevel(), targetParent.getLevel());
 			baseMapper.updatePid(entity.getId(), targetParent.getId());
-			// 不是根节点，移出时，更新受影响节点的左右值
+			// 被移动节点如果不是根节点，移出时，更新受影响节点的左右值
 			if (!entity.isRoot()) {
 				baseMapper.updateLeftGreaterThanParentLeft(entity.getL(), entity.getR(), entity.getRootId());
 				baseMapper.updateRightGreaterThanParentRight(entity.getL(), entity.getR(), entity.getRootId());
 			}
-		} else { // 将当前节点与原父节点分离，转换为独立的根节点（带上其子节点）
+		} else { // 将当前节点与原父节点分离，成为独立的根节点（如果有子节点，也带上其子节点）
 			if (entity.isRoot()) {
 				return; // 已经是根节点，无需处理
 			}
@@ -132,11 +133,11 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 				throw new RuntimeException("父节点数据不存在，id：" + targetPid);
 			}
 
-			// 移出父节点
-			// 先更新移动的节点的左右值
+			// 移出节点及其子节点（如果有子节点的话），形成新的的一根树
+			// 先更新 ”被移动节点“ 的左右值
 			baseMapper.updateLeftAndRightForMoves2(entity.getId(), entity.getRootId(), entity.getL(), entity.getR(), entity.getLevel());
 			baseMapper.updatePid(entity.getId(), entity.getId());
-			// 再更新受影响的节点的左右值
+			// 再更新受影响的节点的左右值（不含 被移动节点）
 			baseMapper.updateLeftGreaterThanParentLeft(entity.getL(), entity.getR(), entity.getRootId());
 			baseMapper.updateRightGreaterThanParentRight(entity.getL(), entity.getR(), entity.getRootId());
 		}
