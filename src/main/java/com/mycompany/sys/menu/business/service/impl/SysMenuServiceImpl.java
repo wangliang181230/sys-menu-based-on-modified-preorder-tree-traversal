@@ -60,10 +60,9 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 				throw new RuntimeException("父节点不存在，id: " + entity.getPid());
 			}
 
-			baseMapper.updateLeftByParentRight(parentEntity.getR(), parentEntity.getRootId(), 1);
-			baseMapper.updateRightByParentRight(parentEntity.getR(), parentEntity.getRootId(), 1);
-
-			entity.setRootId(parentEntity.getRootId());
+			// 先更新受影响节点的左右值
+			baseMapper.updateLeftAndRightByStart(parentEntity.getRootId(), parentEntity.getR(), 2);
+			// 再新增节点
 			if (!SqlHelper.retBool(baseMapper.insertChild(entity, parentEntity))) {
 				throw new RuntimeException("新增子节点失败");
 			}
@@ -80,9 +79,13 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 			return; // 已经删除，直接返回成功
 		}
 
-		baseMapper.deleteByParentLeftAndRight(entity.getL(), entity.getR(), entity.getRootId());
-		baseMapper.updateLeftGreaterThanParentLeft(entity.getL(), entity.getR(), entity.getRootId());
-		baseMapper.updateRightGreaterThanParentRight(entity.getL(), entity.getR(), entity.getRootId());
+		baseMapper.deleteByStartAndEnd(entity.getRootId(), entity.getL(), entity.getR());
+
+		// 如果不是根节点，则更新受影响节点的左右值
+		if (!entity.isRoot()) {
+			// 大于right的所有节点的左右值，减小删除节点的长度
+			baseMapper.updateLeftAndRightByStart(entity.getRootId(), entity.getR() + 1, -1 * entity.getLength());
+		}
 	}
 
 	@Override
@@ -97,7 +100,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 			return; // 父ID已经是目标父ID了，直接返回，支持幂等
 		}
 
-		if (targetPid != null && !Objects.equals(id, targetPid)) { // 转移到目标父节点下
+		if (targetPid != null && !Objects.equals(id, targetPid)) { // 移动节点到目标父节点下
 			// 获取目标父节点数据
 			SysMenuDO targetParent = baseMapper.selectByIdForUpdate(targetPid);
 			if (targetParent == null) {
@@ -110,42 +113,44 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 
 			if (!entity.getRootId().equals(targetParent.getRootId())) { // 不同根的情况下
 				// 移动到目标父节点
-				// 更新受影响的目标父节点及其相关节点的左右值（不包含 被移动节点）
-				int moveSize = entity.getLength() / 2; // 被移动节点的数量
-				baseMapper.updateLeftByParentRight(targetParent.getR(), targetParent.getRootId(), moveSize);
-				baseMapper.updateRightByParentRight(targetParent.getR(), targetParent.getRootId(), moveSize);
-				// 再更新被移动节点的左右值
-				baseMapper.updateLeftAndRightForMoves(targetParent.getR(), entity.getRootId(), entity.getL(), entity.getR(), targetParent.getRootId(), entity.getLevel(), targetParent.getLevel(), 0);
-				// 被移动节点如果不是根节点，移出时，更新受影响节点的左右值
+				// 先更新受影响的目标父节点及其相关节点的左右值（不包含 被移动节点及其子节点）
+				baseMapper.updateLeftAndRightByStart(targetParent.getRootId(), targetParent.getR(), entity.getLength()); // 加length
+				// 再更新 被移动节点及其子节点 的左右值、rootId、level
+				baseMapper.updateLeftAndRightAndRootIdAndLevelForMoves(entity.getRootId(), entity.getL(), entity.getR(), targetParent.getR(), targetParent.getRootId(), entity.getLevel(), targetParent.getLevel(), 0);
+				// 如果被移动节点不是根节点，移出时，更新受影响节点的左右值
 				if (!entity.isRoot()) {
-					baseMapper.updateLeftGreaterThanParentLeft(entity.getL(), entity.getR(), entity.getRootId());
-					baseMapper.updateRightGreaterThanParentRight(entity.getL(), entity.getR(), entity.getRootId());
+					baseMapper.updateLeftAndRightByStart(entity.getRootId(), entity.getR(), -1 * entity.getLength()); // 减length
 				}
 			} else { // 相同根的情况下
-				// 先隔离 ”被移动节点及其所有子节点“，防止数据更新受影响
+				// 先隔离 ”被移动节点及其所有子节点“，防止左右值更新受影响
 				// 目前所使用的方案是 将其抽离成一棵独立的树，以其id作为rootId，避免受到相关SQL的影响
 				Long tempRootId = entity.getId(); // 以ID作为临时的rootId
-				baseMapper.updateRootId(entity.getRootId(), entity.getL(), entity.getR(), tempRootId);
+				baseMapper.updateRootIdToTempRootId(entity.getRootId(), entity.getL(), entity.getR(), tempRootId);
 
-				// 计算被移动节点左右值时，右移情况下，需要减掉其自身的长度
+				// 右移时，被移动节点左右值的计算需考虑自身的长度，否则为0
 				int length = 0;
 
-				// 先更新受影响节点的左右值（不包含 被移动节点）
+				// 先更新受影响节点的左右值（不包含 被移动节点及其子节点）
+				int start, end, changeValue;
 				if (entity.getL() > targetParent.getR()) { // 左移时
-					baseMapper.updateLeftForMoveLeft(entity.getRootId(), targetParent.getR(), entity.getL(), entity.getLength());
-					baseMapper.updateRightForMoveLeft(entity.getRootId(), targetParent.getR(), entity.getL(), entity.getLength());
+					start = targetParent.getR();
+					end = entity.getL() - 1;
+					changeValue = entity.getLength(); // 加length
 				} else { // 右移时
-					baseMapper.updateLeftForMoveRight(entity.getRootId(), targetParent.getR(), entity.getR(), entity.getLength());
-					baseMapper.updateRightForMoveRight(entity.getRootId(), targetParent.getR(), entity.getR(), entity.getLength());
+					start = entity.getR() + 1;
+					end = targetParent.getR() - 1;
+					changeValue = -1 * entity.getLength(); // 减length
 
-					// 右移时，左右值的计算需考虑自身的长度
+					// 右移时，被移动节点左右值的计算需考虑自身的长度
 					length = entity.getLength();
 				}
+				baseMapper.updateLeftAndRightByStartAndEnd(entity.getRootId(), start, end, changeValue);
 
-				// 再更新被移动节点的左右值
-				baseMapper.updateLeftAndRightForMoves(targetParent.getR(), tempRootId, entity.getL(), entity.getR(), targetParent.getRootId(), entity.getLevel(), targetParent.getLevel(), length);
+				// 再更新 被移动节点及其子节点 的左右值、rootId、level
+				baseMapper.updateLeftAndRightAndRootIdAndLevelForMoves(tempRootId, entity.getL(), entity.getR(), targetParent.getR(), targetParent.getRootId(), entity.getLevel(), targetParent.getLevel(), length);
 			}
-			// 再更新 ”被移动节点“ 的左右值及rootId
+
+			// 最后更新 ”被移动节点“ 的pid
 			baseMapper.updatePid(entity.getId(), targetPid);
 		} else { // 将当前节点与原父节点分离，成为独立的根节点（如果有子节点，也带上其子节点）
 			if (entity.isRoot()) {
@@ -159,12 +164,12 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 			}
 
 			// 移出节点及其子节点（如果有子节点的话），形成新的的一根树
-			// 先更新 ”被移动节点“ 的左右值
-			baseMapper.updateLeftAndRightForMoves2(entity.getId(), entity.getRootId(), entity.getL(), entity.getR(), entity.getLevel());
+			// 先更新 ”被移动节点及其子节点“ 的左右值、rootId、level
+			baseMapper.updateLeftAndRightAndRootIdAndLevelForMoves2(entity.getRootId(), entity.getL(), entity.getR(), entity.getId(), entity.getLevel());
+			// 再更新受影响的节点的左右值（不含 被移动节点及其子节点）
+			baseMapper.updateLeftAndRightByStart(entity.getRootId(), entity.getR() + 1, -1 * entity.getLength()); // 减length
+			// 最后更新 ”被移动节点“ 的pid
 			baseMapper.updatePid(entity.getId(), entity.getId());
-			// 再更新受影响的节点的左右值（不含 被移动节点）
-			baseMapper.updateLeftGreaterThanParentLeft(entity.getL(), entity.getR(), entity.getRootId());
-			baseMapper.updateRightGreaterThanParentRight(entity.getL(), entity.getR(), entity.getRootId());
 		}
 	}
 }

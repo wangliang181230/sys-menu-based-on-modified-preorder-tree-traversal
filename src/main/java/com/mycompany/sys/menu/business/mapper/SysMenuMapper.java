@@ -25,99 +25,114 @@ public interface SysMenuMapper extends BaseMapper<SysMenuDO> {
 	SysMenuDO selectByIdForUpdate(Long id);
 
 
-	//region 新增子节点所需的SQL
+	//region 受影响的节点的左右值更新SQL
 
-	@Update("UPDATE sys_menu SET l = l + 2 * #{childSize}" +
-			" WHERE l >= #{parentRight} AND root_id = #{rootId}")
-	int updateLeftByParentRight(Integer parentRight, Long rootId, Integer childSize);
+	@Update("UPDATE sys_menu" +
+			"   SET l = (" +
+			"         CASE WHEN l >= #{start}" +
+			"           THEN l + #{changeValue}" +
+			"           ELSE l" +
+			"         END" +
+			"       )," +
+			"       r = (" +
+			"         CASE WHEN r >= #{start}" +
+			"           THEN r + #{changeValue}" +
+			"           ELSE r" +
+			"         END" +
+			"       )" +
+			" WHERE root_id = #{rootId}" +
+			"   AND (" +
+			"          l >= #{start}" +
+			"       OR r >= #{start}" +
+			"   )")
+	int updateLeftAndRightByStart(Long rootId, Integer start, Integer changeValue);
 
-	@Update("UPDATE sys_menu SET r = r + 2 * #{childSize}" +
-			" WHERE r >= #{parentRight} AND root_id = #{rootId}")
-	int updateRightByParentRight(Integer parentRight, Long rootId, Integer childSize);
+	@Update("UPDATE sys_menu" +
+			"   SET l = (" +
+			"         CASE WHEN l BETWEEN #{start} AND #{end}" +
+			"           THEN l + #{changeValue}" +
+			"           ELSE l" +
+			"         END" +
+			"       )," +
+			"       r = (" +
+			"         CASE WHEN r BETWEEN #{start} AND #{end}" +
+			"           THEN r + #{changeValue}" +
+			"           ELSE r" +
+			"         END" +
+			"       )" +
+			" WHERE root_id = #{rootId}" +
+			"   AND (" +
+			"       l BETWEEN #{start} AND #{end}" +
+			"    OR r BETWEEN #{start} AND #{end}" +
+			"   )")
+	int updateLeftAndRightByStartAndEnd(Long rootId, Integer start, Integer end, Integer changeValue);
 
-	default int insertChild(SysMenuDO childMenu, SysMenuDO parent) {
-		childMenu.setPid(parent.getId());
-		childMenu.setRootId(parent.getRootId());
-		childMenu.setL(parent.getR());
-		childMenu.setR(parent.getR() + 1);
-		childMenu.setLevel(parent.getLevel() + 1);
-		return this.insert(childMenu);
+	//endregion
+
+
+	//region ”新增子节点“ 所需的SQL
+
+	default int insertChild(SysMenuDO child, SysMenuDO parent) {
+		child.setPid(parent.getId());
+		child.setRootId(parent.getRootId());
+		child.setL(parent.getR());
+		child.setR(parent.getR() + 1);
+		child.setLevel(parent.getLevel() + 1);
+		return this.insert(child);
 	}
 
 	//endregion
 
 
-	//region 删除节点所需的SQL
+	//region ”删除节点“ 所需的SQL
 
-	@Delete("DELETE FROM sys_menu WHERE l >= #{parentLeft} AND r <= #{parentRight} AND root_id = #{rootId}")
-	int deleteByParentLeftAndRight(Integer parentLeft, Integer parentRight, Long rootId);
-
-	@Update("UPDATE sys_menu SET l = l - (#{right} - #{left} + 1)" +
-			" WHERE l > #{right} AND root_id = #{rootId}")
-	int updateLeftGreaterThanParentLeft(Integer left, Integer right, Long rootId);
-
-	@Update("UPDATE sys_menu SET r = r - (#{right} - #{left} + 1)" +
-			" WHERE r > #{right} AND root_id = #{rootId}")
-	int updateRightGreaterThanParentRight(Integer left, Integer right, Long rootId);
+	/**
+	 * 删除左右值在某个范围内的所有节点
+	 *
+	 * @param rootId 根节点ID
+	 * @param start  起始左右值
+	 * @param end    截止左右值
+	 * @return deletedRows 返回删除的行数
+	 */
+	@Delete("DELETE FROM sys_menu WHERE root_id = #{rootId} AND l >= #{start} AND r <= #{end}")
+	int deleteByStartAndEnd(Long rootId, Integer start, Integer end);
 
 	//endregion
 
 
 	//region 移动节点所需的SQL
 
-	//region 节点移动到其他节点下所需的SQL
+	@Update("UPDATE sys_menu SET pid = #{pid} WHERE id = #{id}")
+	int updatePid(Long id, Long pid);
 
-	@Update("UPDATE sys_menu SET l = l + #{length}" +
-			" WHERE root_id = #{rootId} AND l >= #{targetParentRight} AND l < #{left}"
-	)
-	int updateLeftForMoveLeft(Long rootId, Integer targetParentRight, Integer left, Integer length);
+	//region ”移动节点到目标父节点下“ 所需的SQL
 
-
-	@Update("UPDATE sys_menu SET r = r + #{length}" +
-			" WHERE root_id = #{rootId} AND r >= #{targetParentRight} AND r < #{left}"
-	)
-	int updateRightForMoveLeft(Long rootId, Integer targetParentRight, Integer left, Integer length);
-
-
-	@Update("UPDATE sys_menu SET l = l - #{length}" +
-			" WHERE root_id = #{rootId} AND l > #{right} AND l < #{targetParentRight}"
-	)
-	int updateLeftForMoveRight(Long rootId, Integer targetParentRight, Integer right, Integer length);
-
-	@Update("UPDATE sys_menu SET r = r - #{length}" +
-			" WHERE root_id = #{rootId} AND r > #{right} AND r < #{targetParentRight}"
-	)
-	int updateRightForMoveRight(Long rootId, Integer targetParentRight, Integer right, Integer length);
-
+	@Update("UPDATE sys_menu SET root_id = #{tempRootId}" +
+			" WHERE root_id = #{rootId} AND l >= #{left} AND r <= #{right}")
+	int updateRootIdToTempRootId(Long rootId, Integer left, Integer right, Long tempRootId);
 
 	@Update("UPDATE sys_menu" +
 			"   SET l = l + (#{parentRight} - #{left} - #{length})," +
 			"       r = r + (#{parentRight} - #{left} - #{length})," +
-			"       level = level + (#{targetLevel} - #{level} + 1)," +
-			"       root_id = #{targetRootId}" +
+			"       root_id = #{targetRootId}," +
+			"       level = level + (#{targetLevel} - #{level} + 1)" +
 			" WHERE root_id = #{rootId} AND l >= #{left} AND r <= #{right}" // 被移动节点
 	)
-	int updateLeftAndRightForMoves(Integer parentRight, Long rootId, Integer left, Integer right, Long targetRootId, Integer level, Integer targetLevel, Integer length);
-
-	@Update("UPDATE sys_menu SET pid = #{pid} WHERE id = #{id}")
-	int updatePid(Long id, Long pid);
-
-	@Update("UPDATE sys_menu SET root_id = #{newRootId}" +
-			" WHERE root_id = #{rootId} AND l >= #{left} AND r <= #{right}")
-	int updateRootId(Long rootId, Integer left, Integer right, Long newRootId);
+	int updateLeftAndRightAndRootIdAndLevelForMoves(Long rootId, Integer left, Integer right, Integer parentRight, Long targetRootId, Integer level, Integer targetLevel, Integer length);
 
 	//endregion
 
-	//region 节点独立成一个根节点所需的SQL
+
+	//region ”将当前节点与原父节点分离，成为独立的根节点“ 所需的SQL
 
 	@Update("UPDATE sys_menu" +
 			"   SET l = l - #{left} + 1," +
 			"       r = r - #{left} + 1," +
-			"       level = level - #{level} + 1," +
-			"       root_id = #{id}" +
+			"       root_id = #{targetRootId}," +
+			"       level = level - #{level} + 1" +
 			" WHERE root_id = #{rootId} AND l >= #{left} AND r <= #{right}" // 被移动节点
 	)
-	int updateLeftAndRightForMoves2(Long id, Long rootId, Integer left, Integer right, Integer level);
+	int updateLeftAndRightAndRootIdAndLevelForMoves2(Long rootId, Integer left, Integer right, Long targetRootId, Integer level);
 
 	//endregion
 
