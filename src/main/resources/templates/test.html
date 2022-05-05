@@ -83,18 +83,7 @@
 			let html = "";
 			for (let i = 0; i < tree.length; i++) {
 				let menu = tree[i];
-				menu.warn = "";
-				if (parent) {
-					if (menu.rootId !== parent.rootId) menu.warn += "与父节点不同根；";
-					if (menu.pid !== parent.id) menu.warn += "pid不等于父节点ID；";
-					if (menu.level !== parent.level + 1) menu.warn += "level有误；";
-					if (menu.l <= parent.l) menu.warn += "left <= parentLeft；";
-					if (menu.l >= parent.r) menu.warn += "left >= parentRight；";
-					if (menu.r <= parent.l) menu.warn += "right <= parentLeft；";
-					if (menu.r >= parent.r) menu.warn += "right >= parentRight；";
-				}
-				if (menu.l <= 0) menu.warn += "left <= 0；";
-				if (menu.l >= menu.r) menu.warn += "left >= right"
+				setWarn(menu, parent); // 设置警告信息（数据正确性检测）
 				html += "<tr>" +
 						"	<td>" + menu.id + "</td>" +
 						"	<td>" + menu.pid + "</td>" +
@@ -183,6 +172,65 @@
 					alert("删除失败：[" + textStatus + "]" + XMLHttpRequest.responseText);
 				}
 			});
+		}
+
+		function setWarn(menu, parent) {
+			menu.warn = menu.warn || "";
+			if (parent) {
+				if (menu.rootId !== parent.rootId) menu.warn += "与父节点不同根；";
+				if (menu.pid !== parent.id) menu.warn += "pid != parent.id；";
+				if (menu.level !== parent.level + 1) menu.warn += "level != parent.level + 1；";
+				if (menu.l <= parent.l) menu.warn += "left(" + menu.l + ") <= parent.left(" + parent.l + ")；";
+				if (menu.l >= parent.r) menu.warn += "left(" + menu.l + ") >= parent.right(" + parent.r + ")；";
+				if (menu.r <= parent.l) menu.warn += "right(" + menu.r + ") <= parent.left(" + parent.l + ")；";
+				if (menu.r >= parent.r) menu.warn += "right(" + menu.r + ") >= parent.right(" + parent.r + ")；";
+			}
+			if (menu.l <= 0) menu.warn += "left <= 0；";
+			if (menu.l >= menu.r) menu.warn += "left >= right；"
+			if (menu.childList && menu.childList.length > 0) {
+				// 判断左右值与所有子节点的左右值是否符合
+				let minLeftFromChilds = getMinLeftFromChilds(menu.childList, menu.r);
+				if (menu.l !== minLeftFromChilds - 1) {
+					menu.warn += "left太小（应为子节点最小left - 1 = " + (minLeftFromChilds - 1) + "）；";
+				}
+
+				let maxRightFromChjilds = getMaxRightFromChilds(menu.childList, menu.l);
+				if (menu.r !== maxRightFromChjilds + 1) {
+					menu.warn += "right太大（应为子节点最大right + 1 = " + (maxRightFromChjilds + 1) + "）；";
+				}
+			} else {
+				if (menu.l !== menu.r - 1) {
+					menu.warn += "left != right - 1；";
+				}
+			}
+		}
+
+		function getMinLeftFromChilds(childList, minLeft) {
+			for (let i = 0; i < childList.length; i++) {
+				let menu = childList[i];
+				if (minLeft > menu.l) {
+					minLeft = menu.l;
+				}
+				let minLeftFromChilds = getMinLeftFromChilds(menu.childList, minLeft);
+				if (minLeft > minLeftFromChilds) {
+					minLeft = minLeftFromChilds;
+				}
+			}
+			return minLeft;
+		}
+
+		function getMaxRightFromChilds(childList, maxRight) {
+			for (let i = 0; i < childList.length; i++) {
+				let menu = childList[i];
+				if (maxRight < menu.r) {
+					maxRight = menu.r;
+				}
+				let maxRightFromChilds = getMaxRightFromChilds(menu.childList, maxRight);
+				if (maxRight < maxRightFromChilds) {
+					maxRight = maxRightFromChilds;
+				}
+			}
+			return maxRight;
 		}
 
 		loadTree();
