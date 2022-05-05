@@ -123,9 +123,9 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 				}
 			} else { // 相同根的情况下
 				// 先隔离 ”被移动节点及其所有子节点“，防止数据更新受影响
-				// 目前所使用的方案是 将其抽离成一棵独立的树，以其id作为rootId
-				Long newRootId = entity.getId(); // 以ID作为新的rootId
-				baseMapper.updateRootId(entity.getRootId(), entity.getL(), entity.getR(), newRootId);
+				// 目前所使用的方案是 将其抽离成一棵独立的树，以其id作为rootId，避免受到相关SQL的影响
+				Long tempRootId = entity.getId(); // 以ID作为临时的rootId
+				baseMapper.updateRootId(entity.getRootId(), entity.getL(), entity.getR(), tempRootId);
 
 				// 计算被移动节点左右值时，右移情况下，需要减掉其自身的长度
 				int length = 0;
@@ -143,7 +143,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 				}
 
 				// 再更新被移动节点的左右值
-				baseMapper.updateLeftAndRightForMoves(targetParent.getR(), newRootId, entity.getL(), entity.getR(), targetParent.getRootId(), entity.getLevel(), targetParent.getLevel(), length);
+				baseMapper.updateLeftAndRightForMoves(targetParent.getR(), tempRootId, entity.getL(), entity.getR(), targetParent.getRootId(), entity.getLevel(), targetParent.getLevel(), length);
 			}
 			// 再更新 ”被移动节点“ 的左右值及rootId
 			baseMapper.updatePid(entity.getId(), targetPid);
