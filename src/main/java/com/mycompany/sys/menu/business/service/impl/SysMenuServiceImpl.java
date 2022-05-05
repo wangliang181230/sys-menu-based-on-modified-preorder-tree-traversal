@@ -94,7 +94,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 			throw new RuntimeException("节点数据不存在，id：" + id);
 		}
 		if (Objects.equals(entity.getPid(), targetPid)) {
-			return; // 父ID已经是目标父ID了，支持幂等
+			return; // 父ID已经是目标父ID了，直接返回，支持幂等
 		}
 
 		if (targetPid != null && !Objects.equals(id, targetPid)) { // 转移到目标父节点下
@@ -103,25 +103,50 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 			if (targetParent == null) {
 				throw new RuntimeException("移动到的目标父节点数据不存在，id：" + targetPid);
 			}
-
-			// 判断是否为当前节点的子节点
+			// 判断目标父节点是否为被移动节点的子节点
 			if (entity.isMyChild(targetParent)) {
 				throw new RuntimeException("无法移动到自己的子节点下");
 			}
 
-			// 移动到目标父节点
-			// 先更新受影响的目标父节点及其相关节点的左右值（不包含 被移动节点）
-			int moveSize = entity.getLength() / 2; // 被移动节点的数量
-			baseMapper.updateLeftByParentRight2(targetParent.getR(), targetParent.getRootId(), moveSize, entity.getL(), entity.getR());
-			baseMapper.updateRightByParentRight2(targetParent.getR(), targetParent.getRootId(), moveSize, entity.getL(), entity.getR());
-			// 再更新 ”被移动节点“ 的左右值及rootId
-			baseMapper.updateLeftAndRightForMoves(targetParent.getR(), entity.getRootId(), entity.getL(), entity.getR(), targetParent.getRootId(), entity.getLevel(), targetParent.getLevel());
-			baseMapper.updatePid(entity.getId(), targetParent.getId());
-			// 被移动节点如果不是根节点，移出时，更新受影响节点的左右值
-			if (!entity.isRoot()) {
-				baseMapper.updateLeftGreaterThanParentLeft(entity.getL(), entity.getR(), entity.getRootId());
-				baseMapper.updateRightGreaterThanParentRight(entity.getL(), entity.getR(), entity.getRootId());
+			if (!entity.getRootId().equals(targetParent.getRootId())) { // 不同根的情况下
+				// 移动到目标父节点
+				// 更新受影响的目标父节点及其相关节点的左右值（不包含 被移动节点）
+				int moveSize = entity.getLength() / 2; // 被移动节点的数量
+				baseMapper.updateLeftByParentRight(targetParent.getR(), targetParent.getRootId(), moveSize);
+				baseMapper.updateRightByParentRight(targetParent.getR(), targetParent.getRootId(), moveSize);
+				// 再更新被移动节点的左右值
+				baseMapper.updateLeftAndRightForMoves(targetParent.getR(), entity.getRootId(), entity.getL(), entity.getR(), targetParent.getRootId(), entity.getLevel(), targetParent.getLevel(), 0);
+				// 被移动节点如果不是根节点，移出时，更新受影响节点的左右值
+				if (!entity.isRoot()) {
+					baseMapper.updateLeftGreaterThanParentLeft(entity.getL(), entity.getR(), entity.getRootId());
+					baseMapper.updateRightGreaterThanParentRight(entity.getL(), entity.getR(), entity.getRootId());
+				}
+			} else { // 相同根的情况下
+				// 先隔离 ”被移动节点及其所有子节点“，防止数据更新受影响
+				// 目前所使用的方案是 将其抽离成一棵独立的树，以其id作为rootId
+				Long newRootId = entity.getId(); // 以ID作为新的rootId
+				baseMapper.updateRootId(entity.getRootId(), entity.getL(), entity.getR(), newRootId);
+
+				// 计算被移动节点左右值时，右移情况下，需要减掉其自身的长度
+				int length = 0;
+
+				// 先更新受影响节点的左右值（不包含 被移动节点）
+				if (entity.getL() > targetParent.getR()) { // 左移时
+					baseMapper.updateLeftForMoveLeft(entity.getRootId(), targetParent.getR(), entity.getL(), entity.getLength());
+					baseMapper.updateRightForMoveLeft(entity.getRootId(), targetParent.getR(), entity.getL(), entity.getLength());
+				} else { // 右移时
+					baseMapper.updateLeftForMoveRight(entity.getRootId(), targetParent.getR(), entity.getR(), entity.getLength());
+					baseMapper.updateRightForMoveRight(entity.getRootId(), targetParent.getR(), entity.getR(), entity.getLength());
+
+					// 右移时，左右值的计算需考虑自身的长度
+					length = entity.getLength();
+				}
+
+				// 再更新被移动节点的左右值
+				baseMapper.updateLeftAndRightForMoves(targetParent.getR(), newRootId, entity.getL(), entity.getR(), targetParent.getRootId(), entity.getLevel(), targetParent.getLevel(), length);
 			}
+			// 再更新 ”被移动节点“ 的左右值及rootId
+			baseMapper.updatePid(entity.getId(), targetPid);
 		} else { // 将当前节点与原父节点分离，成为独立的根节点（如果有子节点，也带上其子节点）
 			if (entity.isRoot()) {
 				return; // 已经是根节点，无需处理
@@ -130,7 +155,7 @@ public class SysMenuServiceImpl extends ServiceImpl<SysMenuMapper, SysMenuDO>
 			// 获取目标父节点数据
 			SysMenuDO targetParent = baseMapper.selectByIdForUpdate(entity.getPid());
 			if (targetParent == null) {
-				throw new RuntimeException("父节点数据不存在，id：" + targetPid);
+				throw new RuntimeException("父节点数据不存在，id：" + entity.getPid());
 			}
 
 			// 移出节点及其子节点（如果有子节点的话），形成新的的一根树

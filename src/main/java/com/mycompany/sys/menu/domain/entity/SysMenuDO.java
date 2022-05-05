@@ -134,6 +134,9 @@ public class SysMenuDO {
 	}
 
 	public Long getRootId() {
+		if (rootId == null) {
+			return id;
+		}
 		return rootId;
 	}
 

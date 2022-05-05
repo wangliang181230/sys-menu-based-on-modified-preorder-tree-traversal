@@ -13,7 +13,7 @@ public class IndexController {
 	@GetMapping("/")
 	@ApiOperation(value = "首页")
 	public void index(HttpServletResponse response) throws IOException {
-		response.sendRedirect("/swagger-ui.html");
+		response.sendRedirect("/test");
 	}
 
 	@GetMapping("/test")

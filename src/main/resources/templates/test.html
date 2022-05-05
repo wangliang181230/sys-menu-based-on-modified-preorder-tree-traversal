@@ -37,7 +37,10 @@
 
 	<hr/>
 
-	<div><input value="刷新" type="button" onclick="loadTree()"/></div>
+	<div>
+		<input value="刷新" type="button" onclick="loadTree()"/>
+		<a target="_blank" href="./swagger-ui.html#/sys-menu-rest-controller">SwaggerAPI页面</a>
+	</div>
 	<div id="treePanel" style="margin-top: 5px">
 		<table style='border-collapse:collapse'>
 			<thead>
@@ -80,15 +83,18 @@
 			let html = "";
 			for (let i = 0; i < tree.length; i++) {
 				let menu = tree[i];
-				menu.remark = "";
+				menu.warn = "";
 				if (parent) {
-					if (menu.rootId !== parent.rootId) menu.remark += "与父节点不同根；";
-					if (menu.level !== parent.level + 1) menu.remark += "level有误；";
-					if (menu.l <= parent.l) menu.remark += "左值不能<=父左值；";
-					if (menu.r >= parent.r) menu.remark += "右值不能>=父右值；";
+					if (menu.rootId !== parent.rootId) menu.warn += "与父节点不同根；";
+					if (menu.pid !== parent.id) menu.warn += "pid不等于父节点ID；";
+					if (menu.level !== parent.level + 1) menu.warn += "level有误；";
+					if (menu.l <= parent.l) menu.warn += "left <= parentLeft；";
+					if (menu.l >= parent.r) menu.warn += "left >= parentRight；";
+					if (menu.r <= parent.l) menu.warn += "right <= parentLeft；";
+					if (menu.r >= parent.r) menu.warn += "right >= parentRight；";
 				}
-				if (menu.l <= 0) menu.remark += "左值不能 <= 0；";
-				if (menu.l >= menu.r) menu.remark += "左值不能 >= 右值"
+				if (menu.l <= 0) menu.warn += "左值不能 <= 0；";
+				if (menu.l >= menu.r) menu.warn += "左值不能 >= 右值"
 				html += "<tr>" +
 						"	<td>" + menu.id + "</td>" +
 						"	<td>" + menu.pid + "</td>" +
@@ -102,7 +108,7 @@
 						"	<td>" +
 						"		<a href=\"javascript:del('" + menu.id + "')\">删除</a>" +
 						"	</td>" +
-						"	<td style='color: red'>" + menu.remark + "</td>" +
+						"	<td style='color: red'>" + menu.warn + "</td>" +
 						"</tr>";
 				html += buildTreeHtml(menu.childList, s + "—&nbsp;", menu);
 			}
