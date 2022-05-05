@@ -186,17 +186,18 @@
 				if (menu.r >= parent.r) menu.warn += "right(" + menu.r + ") >= parent.right(" + parent.r + ")；";
 			}
 			if (menu.l <= 0) menu.warn += "left <= 0；";
+			if (menu.r <= 0) menu.warn += "right <= 0；";
 			if (menu.l >= menu.r) menu.warn += "left >= right；"
 			if (menu.childList && menu.childList.length > 0) {
 				// 判断左右值与所有子节点的左右值是否符合
 				let minLeftFromChilds = getMinLeftFromChilds(menu.childList, menu.r);
 				if (menu.l !== minLeftFromChilds - 1) {
-					menu.warn += "left太小（应为子节点最小left - 1 = " + (minLeftFromChilds - 1) + "）；";
+					menu.warn += "left太" + (menu.l > minLeftFromChilds - 1 ? "大" : "小") + "（应为子节点最小left - 1 = " + (minLeftFromChilds - 1) + "）；";
 				}
 
 				let maxRightFromChjilds = getMaxRightFromChilds(menu.childList, menu.l);
 				if (menu.r !== maxRightFromChjilds + 1) {
-					menu.warn += "right太大（应为子节点最大right + 1 = " + (maxRightFromChjilds + 1) + "）；";
+					menu.warn += "right太" + (menu.r > maxRightFromChjilds + 1 ? "大" : "小") + "（应为子节点最大right + 1 = " + (maxRightFromChjilds + 1) + "）；";
 				}
 			} else {
 				if (menu.l !== menu.r - 1) {
