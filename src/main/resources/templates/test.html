@@ -93,8 +93,8 @@
 					if (menu.r <= parent.l) menu.warn += "right <= parentLeft；";
 					if (menu.r >= parent.r) menu.warn += "right >= parentRight；";
 				}
-				if (menu.l <= 0) menu.warn += "左值不能 <= 0；";
-				if (menu.l >= menu.r) menu.warn += "左值不能 >= 右值"
+				if (menu.l <= 0) menu.warn += "left <= 0；";
+				if (menu.l >= menu.r) menu.warn += "left >= right"
 				html += "<tr>" +
 						"	<td>" + menu.id + "</td>" +
 						"	<td>" + menu.pid + "</td>" +
