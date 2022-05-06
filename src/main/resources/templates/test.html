@@ -39,6 +39,7 @@
 
 	<div>
 		<input value="刷新" type="button" onclick="loadTree()"/>
+		<a target="_blank" href="./pyramid">左右值树型数据倒金字塔图</a>
 		<a target="_blank" href="./swagger-ui.html#/sys-menu-rest-controller">SwaggerAPI页面</a>
 	</div>
 	<div id="treePanel" style="margin-top: 5px">
@@ -67,22 +68,22 @@
 		function loadTree() {
 			$.ajax({
 				url: "./api/v1/sys-menu/tree",
-				success: function (tree) {
+				success: function (menuList) {
 					let html = "";
-					html += buildTreeHtml(tree, "");
+					html += buildTreeHtml(menuList, "");
 					$("#treeTableBody").html(html).hide().fadeIn(400);
 				}
 			});
 		}
 
-		function buildTreeHtml(tree, s, parent) {
-			if (!tree || tree.length === 0) {
+		function buildTreeHtml(menuList, s, parent) {
+			if (!menuList || menuList.length === 0) {
 				return "";
 			}
 
 			let html = "";
-			for (let i = 0; i < tree.length; i++) {
-				let menu = tree[i];
+			for (let i = 0; i < menuList.length; i++) {
+				let menu = menuList[i];
 				setWarn(menu, parent); // 设置警告信息（数据正确性检测）
 				html += "<tr>" +
 						"	<td>" + menu.id + "</td>" +

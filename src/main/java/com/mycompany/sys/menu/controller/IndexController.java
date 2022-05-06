@@ -22,4 +22,10 @@ public class IndexController {
 		return "test";
 	}
 
+	@GetMapping("/pyramid")
+	@ApiOperation(value = "左右值树型数据倒金字塔图")
+	public String pyramid() {
+		return "pyramid";
+	}
+
 }
