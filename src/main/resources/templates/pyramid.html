@@ -3,87 +3,15 @@
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 	<title>左右值树型数据倒金字塔图</title>
 
-	<script src="jquery-1.8.0.min.js" type="application/javascript"></script>
-	<style>
-		.pyramid {
-			display: inline-block;
-			float: left;
-			position: relative;
-			margin-right: 10px;
-		}
-
-		.node {
-			display: inline-block;
-			border: solid black 1px;
-			background-color: yellow;
-			position: absolute;
-			height: 29px;
-			text-align: center;
-			padding-top: 10px;
-		}
-
-		.num {
-			display: inline-block;
-			width: 39px;
-			height: 30px;
-			position: absolute;
-			top: -2px;
-			text-align: center;
-			padding-top: 10px;
-			border: 1px solid black;
-			size: 10px;
-		}
-	</style>
+	<script src="./js/jquery-1.8.0.min.js" type="application/javascript"></script>
+	<script src="./js/sys-menu.js" type="application/javascript"></script>
+	<link href="./css/sys-menu.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
-	<div id="panel" style="width: 2000px;"></div>
+	<div id="pyramidPanel" style="width: 2000px;"></div>
 
 	<script>
-		const size = 40;
-
-		function loadPyramid() {
-			$.ajax({
-				url: "./api/v1/sys-menu/tree",
-				success: function (menuList) {
-					let $panel = $("#panel");
-					for (let i = 0; i < menuList.length; i++) {
-						let root = menuList[i];
-						let $pyramid = $('<div class="pyramid"></div>').width(size * root.length).height(1000);
-						addChildNodes([root], $pyramid);
-
-						for (let n = 1; n <= root.length; n++) {
-							let $num = $('<div class="num"></div>')
-									.css("left", ((n - 1) * size - 1) + "px")
-									.html(n);
-							$pyramid.append($num);
-						}
-
-						$panel.append($pyramid);
-					}
-				}
-			});
-		}
-
-		function addChildNodes(menuList, $pyramid) {
-			for (let i = 0; i < menuList.length; i++) {
-				let menu = menuList[i];
-				$pyramid.append(buildNode(menu));
-				addChildNodes(menu.childList, $pyramid);
-			}
-		}
-
-		function buildNode(menu) {
-			let $node = $('<div class="node" id="' + menu.id + '" left="' + menu.l + '" right="' + menu.r + '" title="' + menu.name + '">' + menu.l + " - " + menu.r + '</div>');
-
-			$node
-					.css("left", (size * (menu.l - 1) - 1) + "px")
-					.css("top", (size * menu.level - 1) + "px")
-					.width(size * menu.length - 1);
-
-			return $node;
-		}
-
-		loadPyramid();
+		loadPyramid("pyramidPanel");
 	</script>
 </body>
 </html>
