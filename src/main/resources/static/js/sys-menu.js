@@ -260,32 +260,36 @@ function buildNode(menu) {
 	// 设置鼠标移进移出事件
 	$node
 		.mouseover(function () {
-			let $this = $(this);
-			$this.addClass("highlight");
-			let menuid = $this.attr("menuid");
-			$("#row_" + menuid).addClass("highlight");
+			highlight(this, "#row_");
 		})
 		.mouseout(function () {
-			let $this = $(this);
-			$this.removeClass("highlight");
-			let menuid = $this.attr("menuid");
-			$("#row_" + menuid).removeClass("highlight");
+			unHighlight(this, "#row_");
 		});
 
 	// 为节点对应的数据行设置鼠标移进移出事件
 	$("#row_" + menu.id)
 		.mouseover(function () {
-			let $this = $(this);
-			$this.addClass("highlight");
-			let menuid = $this.attr("menuid");
-			$("#node_" + menuid).addClass("highlight");
+			highlight(this, "#node_");
 		})
 		.mouseout(function () {
-			let $this = $(this);
-			$this.removeClass("highlight");
-			let menuid = $this.attr("menuid");
-			$("#node_" + menuid).removeClass("highlight");
+			unHighlight(this, "#node_");
 		});
 
 	return $node;
+}
+
+// 高亮显示
+function highlight(node, refIdPre) {
+	let $node = $(node);
+	$node.addClass("highlight");
+	let menuid = $node.attr("menuid");
+	$(refIdPre + menuid).addClass("highlight");
+}
+
+// 取消高亮显示
+function unHighlight(node, refIdPre) {
+	let $node = $(node);
+	$node.removeClass("highlight");
+	let menuid = $node.attr("menuid");
+	$(refIdPre + menuid).removeClass("highlight");
 }
