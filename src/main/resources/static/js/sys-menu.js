@@ -9,6 +9,10 @@ function loadTree(callback) {
 			if (callback) {
 				callback(menuList);
 			}
+		},
+		error: function (XMLHttpRequest, textStatus, errorThrown) {
+			let result = JSON.parse(XMLHttpRequest.responseText);
+			alert("加载数据失败：[" + XMLHttpRequest.status + "] " + result.message);
 		}
 	});
 }
@@ -22,7 +26,7 @@ function buildTreeHtml(menuList, s, parent) {
 	for (let i = 0; i < menuList.length; i++) {
 		let menu = menuList[i];
 		setWarn(menu, parent); // 设置警告信息（数据正确性检测）
-		html += "<tr>" +
+		html += "<tr id='row_" + menu.id + "' menuid='" + menu.id + "'" + (menu.root ? ' class="root_row"' : "") + ">" +
 			"	<td>" + menu.id + "</td>" +
 			"	<td>" + menu.pid + "</td>" +
 			"	<td>" + menu.rootId + "</td>" +
@@ -65,7 +69,9 @@ function insert() {
 			loadTree();
 		},
 		error: function (XMLHttpRequest, textStatus, errorThrown) {
-			alert("新增失败：[" + textStatus + "]" + XMLHttpRequest.responseText);
+			let result = JSON.parse(XMLHttpRequest.responseText);
+			alert("新增失败：[" + XMLHttpRequest.status + "] " + result.message);
+			loadTree();
 		}
 	});
 }
@@ -93,7 +99,9 @@ function move() {
 			loadTree();
 		},
 		error: function (XMLHttpRequest, textStatus, errorThrown) {
-			alert("移动失败：[" + textStatus + "]" + XMLHttpRequest.responseText);
+			let result = JSON.parse(XMLHttpRequest.responseText);
+			alert("移动失败：[" + XMLHttpRequest.status + "] " + result.message);
+			loadTree();
 		}
 	});
 }
@@ -107,7 +115,9 @@ function del(id) {
 			loadTree();
 		},
 		error: function (XMLHttpRequest, textStatus, errorThrown) {
-			alert("删除失败：[" + textStatus + "]" + XMLHttpRequest.responseText);
+			let result = JSON.parse(XMLHttpRequest.responseText);
+			alert("删除失败：[" + XMLHttpRequest.status + "] " + result.message);
+			loadTree();
 		}
 	});
 }
@@ -180,6 +190,10 @@ function loadPyramid(panelId) {
 		url: "./api/v1/sys-menu/tree",
 		success: function (menuList) {
 			buildPyramid(menuList, panelId);
+		},
+		error: function (XMLHttpRequest, textStatus, errorThrown) {
+			let result = JSON.parse(XMLHttpRequest.responseText);
+			alert("加载数据失败：[" + XMLHttpRequest.status + "] " + result.message);
 		}
 	});
 }
@@ -189,16 +203,23 @@ function buildPyramid(menuList, panelId) {
 	$panel.html("");
 	for (let i = 0; i < menuList.length; i++) {
 		let root = menuList[i];
-		let $pyramid = $('<div class="pyramid"></div>').width(size * root.length).height(1000);
+
+		// 创建一根树的倒金字塔图
+		let length = root.length + root.length % 2;
+		let $pyramid = $('<div class="pyramid" id="pyramid_' + root.id + '"></div>').width(size * length);
+
+		// 往倒金字塔图中添加节点
 		addChildNodes([root], $pyramid);
 
-		for (let n = 1; n <= root.length; n++) {
+		// 给倒金字塔图添加尺码条
+		for (let n = 1; n <= length; n++) {
 			let $num = $('<div class="num"></div>')
 				.css("left", ((n - 1) * size - 1) + "px")
 				.html(n);
 			$pyramid.append($num);
 		}
 
+		// 将倒金字塔展示到页面上
 		$panel.append($pyramid);
 	}
 }
@@ -212,15 +233,46 @@ function addChildNodes(menuList, $pyramid) {
 }
 
 function buildNode(menu) {
-	let $node = $('<div class="node" id="' + menu.id + '" left="' + menu.l + '" right="' + menu.r + '" title="' + menu.name + '">' +
+	let $node = $('<div class="node' + (menu.warn ? ' warn' : "") + '" id="node_' + menu.id + '" menuid="' + menu.id + '" left="' + menu.l + '" right="' + menu.r + '" title="' + menu.name + '">' +
 		'<div class="left-num">' + menu.l + '</div>' +
 		'<div class="right-num">' + menu.r + '</div>' +
 		'</div>');
 
+	// 设置尺寸和位置
 	$node
 		.css("left", (size * (menu.l - 1) - 1) + "px")
 		.css("top", (size * menu.level - 1) + "px")
 		.width(size * menu.length - 1);
+
+	// 设置鼠标移进移出事件
+	$node
+		.mouseover(function () {
+			let $this = $(this);
+			$this.addClass("highlight");
+			let menuid = $this.attr("menuid");
+			$("#row_" + menuid).addClass("highlight");
+		})
+		.mouseout(function () {
+			let $this = $(this);
+			$this.removeClass("highlight");
+			let menuid = $this.attr("menuid");
+			$("#row_" + menuid).removeClass("highlight");
+		});
+
+	// 为节点对应的数据行设置鼠标移进移出事件
+	$("#row_" + menu.id)
+		.mouseover(function () {
+			let $this = $(this);
+			$this.addClass("highlight");
+			let menuid = $this.attr("menuid");
+			$("#node_" + menuid).addClass("highlight");
+		})
+		.mouseout(function () {
+			let $this = $(this);
+			$this.removeClass("highlight");
+			let menuid = $this.attr("menuid");
+			$("#node_" + menuid).removeClass("highlight");
+		});
 
 	return $node;
 }

@@ -44,7 +44,8 @@ public class SysMenuDO {
 	}
 
 	/**
-	 * 获取当前节点左右值长度
+	 * 获取当前节点左右值长度<br>
+	 * 提示：数据正常情况下为偶数，奇数表示数据有问题。
 	 *
 	 * @return 返回左右值长度
 	 */
@@ -52,6 +53,7 @@ public class SysMenuDO {
 		if (l == null || r == null) {
 			return 0;
 		}
+
 		return r - l + 1;
 	}
 
