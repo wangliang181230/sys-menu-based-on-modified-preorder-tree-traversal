@@ -137,38 +137,38 @@ function setWarn(menu, par) {
 
 	menu.warn = "";
 	let n = 1;
-	if (menu.l <= 0) menu.warn += (n++ + "、") + "left <= 0；<br/>";
-	else if (menu.id === menu.rootId && menu.l !== 1) menu.warn += (n++ + "、") + "根节点的left必须为1，但目前为" + menu.l + "；<br/>";
-	if (menu.r <= 0) menu.warn += (n++ + "、") + "right <= 0；<br/>";
-	if (menu.l >= menu.r) menu.warn += (n++ + "、") + "left >= right；<br/>"
+	if (menu.l <= 0) menu.warn += (n++ + "）") + "left <= 0；<br/>";
+	else if (menu.id === menu.rootId && menu.l !== 1) menu.warn += (n++ + "）") + "根节点的left必须为1，但目前为" + menu.l + "；<br/>";
+	if (menu.r <= 0) menu.warn += (n++ + "）") + "right <= 0；<br/>";
+	if (menu.l >= menu.r) menu.warn += (n++ + "）") + "left >= right；<br/>"
 	if (menu.childList && menu.childList.length > 0) {
 		// 判断左右值与所有子节点的左右值是否符合
 		let minLeftFromChilds = getMinLeftFromChilds(menu.childList, menu.r);
 		if (menu.l !== minLeftFromChilds - 1) {
-			menu.warn += (n++ + "、") + "left太" + (menu.l > minLeftFromChilds - 1 ? "大" : "小") + "（应为子节点最小left - 1 = " + (minLeftFromChilds - 1) + "）；<br/>";
+			menu.warn += (n++ + "）") + "left太" + (menu.l > minLeftFromChilds - 1 ? "大" : "小") + "（应为子节点最小left - 1 = " + (minLeftFromChilds - 1) + "）；<br/>";
 		}
 
 		let maxRightFromChjilds = getMaxRightFromChilds(menu.childList, menu.l);
 		if (menu.r !== maxRightFromChjilds + 1) {
-			menu.warn += (n++ + "、") + "right太" + (menu.r > maxRightFromChjilds + 1 ? "大" : "小") + "（应为子节点最大right + 1 = " + (maxRightFromChjilds + 1) + "）；<br/>";
+			menu.warn += (n++ + "）") + "right太" + (menu.r > maxRightFromChjilds + 1 ? "大" : "小") + "（应为子节点最大right + 1 = " + (maxRightFromChjilds + 1) + "）；<br/>";
 		}
 	} else if (menu.l !== menu.r - 1) {
-		menu.warn += (n++ + "、") + "left != right - 1；<br/>";
+		menu.warn += (n++ + "）") + "left != right - 1；<br/>";
 	}
 	if (menu.length % 2 !== 0) {
-		menu.warn += (n++ + "、") + "length（即：right - left + 1）不是偶数；";
+		menu.warn += (n++ + "）") + "length（即：right - left + 1）不是偶数；";
 	}
 
 	if (par) {
-		if (menu.rootId !== par.rootId) menu.warn += (n++ + "、") + "rootId != parent.rootId；<br/>";
-		if (menu.pid !== par.id) menu.warn += (n++ + "、") + "pid != parent.id；<br/>";
-		if (menu.level !== par.level + 1) menu.warn += (n++ + "、") + "level != parent.level + 1；<br/>";
+		if (menu.rootId !== par.rootId) menu.warn += (n++ + "）") + "rootId != parent.rootId；<br/>";
+		if (menu.pid !== par.id) menu.warn += (n++ + "）") + "pid != parent.id；<br/>";
+		if (menu.level !== par.level + 1) menu.warn += (n++ + "）") + "level != parent.level + 1；<br/>";
 
 		// 上面已经校验过左右值与子节点的大小正确性，以下这四项无需再校验。
-		// if (menu.l <= par.l) menu.warn += (n++ + "、") + "left <= parent.left；<br/>";
-		// if (menu.l >= par.r) menu.warn += (n++ + "、") + "left >= parent.right；<br/>";
-		// if (menu.r <= par.l) menu.warn += (n++ + "、") + "right <= parent.left；<br/>";
-		// if (menu.r >= par.r) menu.warn += (n++ + "、") + "right >= parent.right；<br/>";
+		// if (menu.l <= par.l) menu.warn += (n++ + "）") + "left <= parent.left；<br/>";
+		// if (menu.l >= par.r) menu.warn += (n++ + "）") + "left >= parent.right；<br/>";
+		// if (menu.r <= par.l) menu.warn += (n++ + "）") + "right <= parent.left；<br/>";
+		// if (menu.r >= par.r) menu.warn += (n++ + "）") + "right >= parent.right；<br/>";
 	}
 }
 
@@ -221,6 +221,7 @@ function buildPyramid(menuList, panelId) {
 	for (let i = 0; i < menuList.length; i++) {
 		let root = menuList[i];
 		setWarn(root);
+		root.level = 1;
 
 		// 计算最大的right
 		let maxRight = root.r + root.r % 2;
@@ -251,7 +252,8 @@ function buildPyramid(menuList, panelId) {
 function addChildNodes(menuList, $pyramid, par) {
 	for (let i = 0; i < menuList.length; i++) {
 		let menu = menuList[i];
-		setWarn(menu, par)
+		setWarn(menu, par);
+		if (par && (!menu.level || menu.level !== par.level + 1)) menu.level = par.level + 1;
 
 		if (!menu.warn) setWarn(menu,)
 		$pyramid.append(buildNode(menu));
