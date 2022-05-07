@@ -7,5 +7,6 @@ CREATE TABLE `sys_menu`
     `l`       int          NOT NULL,
     `r`       int          NOT NULL,
     `level`   int          NOT NULL,
-    PRIMARY KEY (`id`) USING BTREE
+    PRIMARY KEY (`id`),
+    INDEX `IDX_ROOT_L_R`(`root_id`, `l`, `r`)
 ) ENGINE = InnoDB;
