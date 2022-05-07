@@ -150,15 +150,20 @@ function setWarn(menu, par) {
 	} else if (menu.l !== menu.r - 1) {
 		menu.warn += "left != right - 1；<br/>";
 	}
+	if (menu.length % 2 !== 0) {
+		menu.warn += "length（即：right - left + 1）不是偶数；";
+	}
 
 	if (par) {
 		if (menu.rootId !== par.rootId) menu.warn += "rootId != parent.rootId；<br/>";
 		if (menu.pid !== par.id) menu.warn += "pid != parent.id；<br/>";
 		if (menu.level !== par.level + 1) menu.warn += "level != parent.level + 1；<br/>";
-		if (menu.l <= par.l) menu.warn += "left <= parent.left；<br/>";
-		if (menu.l >= par.r) menu.warn += "left >= parent.right；<br/>";
-		if (menu.r <= par.l) menu.warn += "right <= parent.left；<br/>";
-		if (menu.r >= par.r) menu.warn += "right >= parent.right；<br/>";
+
+		// 上面已经校验过左右值与子节点的大小正确性，以下这四项无需再校验。
+		// if (menu.l <= par.l) menu.warn += "left <= parent.left；<br/>";
+		// if (menu.l >= par.r) menu.warn += "left >= parent.right；<br/>";
+		// if (menu.r <= par.l) menu.warn += "right <= parent.left；<br/>";
+		// if (menu.r >= par.r) menu.warn += "right >= parent.right；<br/>";
 	}
 }
 
@@ -211,17 +216,22 @@ function buildPyramid(menuList, panelId) {
 	for (let i = 0; i < menuList.length; i++) {
 		let root = menuList[i];
 
+		// 计算最大的right
+		let maxRight = root.r + root.r % 2;
+		let maxRightFromChilds = getMaxRightFromChilds(root.childList, root.r);
+		if (maxRight < maxRightFromChilds) maxRight = maxRightFromChilds;
+		maxRight += maxRight % 2;
+
 		// 创建一根树的倒金字塔图
-		let length = root.length + root.length % 2;
-		let $pyramid = $('<div class="pyramid" id="pyramid_' + root.id + '"></div>').width(size * length + 1);
+		let $pyramid = $('<div class="pyramid" id="pyramid_' + root.id + '"></div>').width(size * maxRight + 1);
 
 		// 往倒金字塔图中添加节点
 		addChildNodes([root], $pyramid);
 
 		// 给倒金字塔图添加尺码条
-		for (let n = 1; n <= length; n++) {
+		for (let n = 1; n <= maxRight; n++) {
 			let $num = $('<div class="num"></div>')
-				.css("left", ((n - 1) * size) + "px")
+				.css("left", ((n - 1) * size - 1) + "px")
 				.html(n);
 			$pyramid.append($num);
 		}
@@ -253,7 +263,7 @@ function buildNode(menu) {
 
 	// 设置尺寸和位置
 	$node
-		.css("left", (size * (menu.l - 1)) + "px")
+		.css("left", (size * (menu.l - 1) - 1) + "px")
 		.css("top", (size * menu.level) + "px")
 		.width(size * menu.length - 1);
 

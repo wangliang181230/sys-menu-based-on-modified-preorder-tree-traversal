@@ -8,16 +8,21 @@ th, td {
 	font-weight: bolder;
 }
 
+.highlight {
+	z-index: 1;
+}
+
 tr.highlight, .node.highlight {
 	background-color: #bcebc1;
 }
 
 .node.warn.highlight {
-	background-color: #f3b7d1;
+	background-color: #f0a9c8;
 }
 
 .node.warn {
 	background-color: #e53c3c;
+	color: yellow;
 }
 
 .name-head {
@@ -35,14 +40,13 @@ tr.highlight, .node.highlight {
 	display: inline-block;
 	float: left;
 	position: relative;
-	margin-right: 10px;
+	margin-right: 20px;
 	margin-bottom: 50px;
 }
 
 .node {
 	display: inline-block;
 	border: solid black 1px;
-	border-top: 0;
 	background-color: yellow;
 	position: absolute;
 	height: 29px;
