@@ -1,3 +1,15 @@
+function showError(title, XMLHttpRequest) {
+	let message;
+	try {
+		let result = JSON.parse(XMLHttpRequest.responseText);
+		message = result.message;
+	} catch (t) {
+		message = XMLHttpRequest.responseText;
+	}
+
+	alert(title + "：" + message + "  [" + XMLHttpRequest.status + "]");
+}
+
 function loadTree(callback) {
 	callback = callback || window.callback;
 	$.ajax({
@@ -11,8 +23,7 @@ function loadTree(callback) {
 			}
 		},
 		error: function (XMLHttpRequest, textStatus, errorThrown) {
-			let result = JSON.parse(XMLHttpRequest.responseText);
-			alert("加载数据失败：[" + XMLHttpRequest.status + "] " + result.message);
+			showError("加载数据失败", XMLHttpRequest);
 		}
 	});
 }
@@ -69,8 +80,7 @@ function insert() {
 			loadTree();
 		},
 		error: function (XMLHttpRequest, textStatus, errorThrown) {
-			let result = JSON.parse(XMLHttpRequest.responseText);
-			alert("新增失败：[" + XMLHttpRequest.status + "] " + result.message);
+			showError("新增失败", XMLHttpRequest);
 			loadTree();
 		}
 	});
@@ -99,8 +109,7 @@ function move() {
 			loadTree();
 		},
 		error: function (XMLHttpRequest, textStatus, errorThrown) {
-			let result = JSON.parse(XMLHttpRequest.responseText);
-			alert("移动失败：[" + XMLHttpRequest.status + "] " + result.message);
+			showError("移动失败", XMLHttpRequest);
 			loadTree();
 		}
 	});
@@ -115,8 +124,7 @@ function del(id) {
 			loadTree();
 		},
 		error: function (XMLHttpRequest, textStatus, errorThrown) {
-			let result = JSON.parse(XMLHttpRequest.responseText);
-			alert("删除失败：[" + XMLHttpRequest.status + "] " + result.message);
+			showError("删除失败", XMLHttpRequest);
 			loadTree();
 		}
 	});
@@ -192,8 +200,7 @@ function loadPyramid(panelId) {
 			buildPyramid(menuList, panelId);
 		},
 		error: function (XMLHttpRequest, textStatus, errorThrown) {
-			let result = JSON.parse(XMLHttpRequest.responseText);
-			alert("加载数据失败：[" + XMLHttpRequest.status + "] " + result.message);
+			showError("加载数据失败", XMLHttpRequest);
 		}
 	});
 }
@@ -222,6 +229,7 @@ function buildPyramid(menuList, panelId) {
 		// 将倒金字塔展示到页面上
 		$panel.append($pyramid);
 	}
+	return $panel;
 }
 
 function addChildNodes(menuList, $pyramid) {

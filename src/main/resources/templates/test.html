@@ -55,7 +55,7 @@
 
 	<script>
 		// 注：这行代码注释掉，将不会展示倒金字塔图
-		window.callback = (menuList) => buildPyramid(menuList, "pyramidPanel");
+		window.callback = (menuList) => buildPyramid(menuList, "pyramidPanel").hide().fadeIn(400);
 
 		loadTree();
 	</script>
