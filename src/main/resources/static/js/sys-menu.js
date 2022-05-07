@@ -213,7 +213,7 @@ function buildPyramid(menuList, panelId) {
 
 		// 创建一根树的倒金字塔图
 		let length = root.length + root.length % 2;
-		let $pyramid = $('<div class="pyramid" id="pyramid_' + root.id + '"></div>').width(size * length);
+		let $pyramid = $('<div class="pyramid" id="pyramid_' + root.id + '"></div>').width(size * length + 1);
 
 		// 往倒金字塔图中添加节点
 		addChildNodes([root], $pyramid);
@@ -221,7 +221,7 @@ function buildPyramid(menuList, panelId) {
 		// 给倒金字塔图添加尺码条
 		for (let n = 1; n <= length; n++) {
 			let $num = $('<div class="num"></div>')
-				.css("left", ((n - 1) * size - 1) + "px")
+				.css("left", ((n - 1) * size) + "px")
 				.html(n);
 			$pyramid.append($num);
 		}
@@ -236,6 +236,11 @@ function addChildNodes(menuList, $pyramid) {
 	for (let i = 0; i < menuList.length; i++) {
 		let menu = menuList[i];
 		$pyramid.append(buildNode(menu));
+		let height = (menu.level + 1) * size + 1;
+		if ($pyramid.height() < height) {
+			$pyramid.height(height);
+		}
+
 		addChildNodes(menu.childList, $pyramid);
 	}
 }
@@ -248,8 +253,8 @@ function buildNode(menu) {
 
 	// 设置尺寸和位置
 	$node
-		.css("left", (size * (menu.l - 1) - 1) + "px")
-		.css("top", (size * menu.level - 1) + "px")
+		.css("left", (size * (menu.l - 1)) + "px")
+		.css("top", (size * menu.level) + "px")
 		.width(size * menu.length - 1);
 
 	// 设置鼠标移进移出事件
