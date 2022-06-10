@@ -1,1 +1,1 @@
-基于左右值树型数据结构的菜单功能。
+基于左右值树型数据结构（modified preorder tree traversal）的菜单功能。
